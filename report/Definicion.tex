@@ -1,0 +1,19 @@
+%Explicaci\'on del problema que se va a estudiar, en qu\'e consiste, cu\'ales son sus variables , restricciones y objetivo(s) de manera general (en palabras, no una formulaci\'on matem\'atica). Debe entenderse claramente el problema y qu\'e busca resolver.
+%Explicar si existen problemas relacionados.
+%Destacar, si existen, las variantes m\'as conocidas.\\
+%Redactar en tercera persona, sin faltas de ortograf\'ia y referenciar correctamente sus fuentes mediante el comando  \verb+\cite{ }+. Por ejemplo, para hacer referencia al art\'iculo de algoritmos h\'ibridos para problemas de satisfacci\'on
+%de restricciones~\cite{Prosser93Hybrid}.
+
+El problema de Truck Drone Parcel Delivery Problem (Que nos referiremos a el de la forma TDPDP) ha tenido varias definiciones en varios trabajos. Antes de la definición que usaremos durante este trabajo, haremos referencias a otras definiciones realizadas en trabajos previos.
+
+Primero, hemos de mencionar que TDPDP es una variante de otros problemas más conocidos en el mundo de la optimización. Estos corresponden al TSP (The Salesman Problem, o El problema del Vendedor Viajero en español) y el problema de VRP (Vehicle Routing Problem, o el Problema de Ruteo de Vehiculos en español). VRP es la variante más cercana a TDPDP, y la cual es también variante de TSP, por lo que nos enfocaremos en referirnos a esta como el problema de donde proviene TDPDP.
+
+VRP , definido según \cite{Irnich2014FamilyVRP}, se tiene que \textbf{dado} un set de entregadas solicitadas (también entendidas como ubicaciones) y una cantidad de vehiculos, entonces la \textbf{tarea} es determinar un set de ruta para cada uno de los vehiculos para poder llegar a las ubicaciones de entrega a un costo mínimo, es decir, decidir que vehiculo va a cuales ubicaciones y en que secuencia para que todas (o algunas) de las ubicaciones sean cubiertas. 
+
+De la definición de VRP, se define una variante conocida como CVRP, la cual se acerca más a nuestra definición para el TDPDP. Esta variante tiene un punto de inicio (conocido como depot, deposito en español), y se le hace también referencia a puntos (o ubicaciones) de entrega. El problema debe resolverse desde el punto de inicio definido hacia cada una de las ubicaciones de entrega. Las restricciones del problema siguen a VRP, es decir, se tienen también la restricción de visitar todas las ubicaciones de entrega.
+
+Conociendo el problema de VRP, TDPDP es una variante de VRP en la que se incluye un dron, el cual permite realizar entregas en conjunto al vehiculo. Siguiendo la definición realizada en \cite{Murray2015Flying}, este dron tiene las caracteristicas de que su costo para viajar de un nodo puede ser distinto que al costo del camión y, adicionalmente, hacer entregas en paralelo mientras el camión visita otros nodos, lo cual puede hacer el costo asociado al viaje más bajo y los tiempos de entrega más cortos. El objetivo es minimizar el tiempo de retorno más tardio de ambos vehiculos al deposito.
+
+Se tienen restricciones relacionadas con el dron. Según \cite{Murray2015Flying}, hay restricciones con respecto a la cantidad de drones por camión, la bateria del dron, y las velocidades del dron. Solo puede haber un dron asociado a cada camión, el cual al salir del camión debe de reunirse con este en algún nodo posterior. El dron tiene una bateria asociada la cual indica cuanta distancia puede recorrer y cuanto tiempo puede quedarse en espera (Por ejemplo, un dron podria esperar en un nodo al camión siempre y cuando le quede bateria cuando este llegue), y por ultimo la velocidad del dron limita que nodos pueden visitarse.
+
+
