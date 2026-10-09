@@ -1,28 +1,28 @@
 %Uno o más modelos matemáticos para el problema, idealmente indicando el espacio de búsqueda para cada uno. Cada modelo debe estar correctamente referenciado, además no debe ser una imagen extraida. También deben explicarse en detalle cada una de las partes, mostrando claramente la función a maximizar/minimizar, variables y restricciones. Tanto las fórmulas como las explicaciones deben ser consistentes.
 
-En este trabajo planteamos el modelo matemático con inspiración directa del trabajo realizado en \cite{Murray2015Flying}. Esta decisión viene a que este modelo se utiliza de base en variaciones que tienen otros modelos, por lo que utilizarlo de base nos da una libertad para explicar otros modelos.
+En este trabajo se plantea el modelo matemático con inspiración directa del trabajo realizado en \cite{Murray2015Flying}. Esta decisión se debe a que este modelo se utiliza de base en variaciones que tienen otros modelos, por lo que utilizarlo de base otorga libertad para explicar otros modelos.
 
-\subsection{Parametros}
+\subsection{Parámetros}
 
-Se definen los siguientes parametros:
+Se definen los siguientes parámetros:
 \begin{itemize}
-\item $C \in \{1,\dots,c\}$: Conjunto de clientes
+\item $C \in \{1,\dots,c\}$: Conjunto de clientes.
 \item $C' \subset C$: Conjunto de clientes que pueden ser entregados por el dron.
-\item $N = \{0,1,\dots,c+1\}$ Conjunto de todos los nodos (o ubicaciones de entrega) posibles. $0$ indica el depot inicial y $c+1$ volver al depot.
-\item $N_0 \in \{0,1,\dots,c\}$: Conjunto de todos los nodos donde el vehiculo puede partir.
-\item $N_+ \in \{1,\dots,c,c+1\}$: Conjunto de todos los nodos donde el vehiculo puede visitar.
-\item $\tau_{ij}$: Tiempo requerido por el camión para viajar del nodo $i$ al nodo $j$
+\item $N = \{0,1,\dots,c+1\}$: Conjunto de todos los nodos (o ubicaciones de entrega) posibles. $0$ indica el depósito inicial y $c+1$ volver al depósito.
+\item $N_0 \in \{0,1,\dots,c\}$: Conjunto de todos los nodos desde donde el vehículo puede partir.
+\item $N_+ \in \{1,\dots,c,c+1\}$: Conjunto de todos los nodos que el vehículo puede visitar.
+\item $\tau_{ij}$: Tiempo requerido por el camión para viajar del nodo $i$ al nodo $j$.
 \item $\tau'_{ij}$: Tiempo requerido por el dron para viajar del nodo $i$ al nodo $j$.
 \item $S_L$: Tiempo que tarda en lanzarse el dron de alguna ubicación.
 \item $S_R$: Tiempo que tarda en recuperarse el dron de alguna ubicación.
-\item $e$: Resistencia de vuelo del dron. Indica cuanto tiempo puede soportar volando.
+\item $e$: Resistencia de vuelo del dron. Indica cuánto tiempo puede soportar volando.
 \item $P$: Conjunto de tuplas en la forma $i,j,k$ en donde se incluye si cumple las siguientes condiciones:
 \begin{enumerate}
-\item El punto de salida $i$ no debe ser un nodo de termino ($i \in N_0$)
-\item El punto de llegada $j$ debe de no ser igual al punto $i$ y debe de pertencer a los nodos que pueden ser entregados por dron. (Es decir, $j \in \{C': j \neq i\}$).
-\item El punto de recuperación del dron, $k$, no debe de ser ni $i$ ni $j$, puede ser cualquier nodo de cliente o el depot, y el tiempo de vuelo de $i\to j\to k$ no debe de ser más que la capacidad de resistencia del dron $e$.
+\item El punto de salida $i$ no debe ser un nodo de término ($i \in N_0$).
+\item El punto de llegada $j$ no debe ser igual al punto $i$ y debe pertenecer a los nodos que pueden ser entregados por dron. (Es decir, $j \in \{C': j \neq i\}$).
+\item El punto de recuperación del dron, $k$, no debe ser ni $i$ ni $j$, puede ser cualquier nodo de cliente o el depósito, y el tiempo de vuelo de $i\to j\to k$ no debe ser mayor que la capacidad de resistencia del dron $e$.
 \begin{itemize}
-\item Matematicamente, se define como $k\in\{N_+: k \neq j, k\neq i, \tau'_{ij}+\tau'_{jk}\leq e\}$
+\item Matemáticamente, se define como $k\in\{N_+: k \neq j, k\neq i, \tau'_{ij}+\tau'_{jk}\leq e\}$.
 \end{itemize}
 \end{enumerate}
 \end{itemize}
@@ -32,28 +32,28 @@ Se definen los siguientes parametros:
 Se definen las siguientes variables de decisión:
 
 \begin{itemize}
-\item $x_{ij}$: Indica si el camión se mueve del nodo $i$ al nodo $j$. $D_{x_{ij}} \in \{0,1\}$
-\item $y_{ijk}$: Indica si el dron sale del nodo $i$, atiende al nodo $j$ y se queda en $k$. $D_{y_{ijk}} \in \{0,1\}$
-\item $t_j$: Indica el tiempo de entrega del camión en el nodo $j$. $D_{t_j} \in \mathbb{N}$
-\item $t'_j$: Indica el tiempo de entrega del dron en el nodo $j$. $D_{t'_j} \in \mathbb{N}$
+\item $x_{ij}$: Indica si el camión se mueve del nodo $i$ al nodo $j$. $D_{x_{ij}} \in \{0,1\}$.
+\item $y_{ijk}$: Indica si el dron sale del nodo $i$, atiende al nodo $j$ y se queda en $k$. $D_{y_{ijk}} \in \{0,1\}$.
+\item $t_j$: Indica el tiempo de entrega del camión en el nodo $j$. $D_{t_j} \in \mathbb{N}$.
+\item $t'_j$: Indica el tiempo de entrega del dron en el nodo $j$. $D_{t'_j} \in \mathbb{N}$.
 \end{itemize}
 
 El trabajo de \cite{Murray2015Flying} también hace referencia al uso de dos variables auxiliares:
 \begin{itemize}
-\item $p_{ij}$: Vale uno si indica que el cliente $i \in C$ es visitado en algún tiempo previo a $j\in\{C: j\neq i\}$. $D_{p_{ij}} \in \{0,1\}$
-\item $u_i$: Especifica la posición del nodo $i \in N_+$ en el camino del camión. Usada para evitar subrutas del camión, y asi hacer de que si un dron va hacia un nodo el camión no este obligado a pasar por ahi. $D_{u_i} \in \{1,c+2\}$
+\item $p_{ij}$: Vale uno si indica que el cliente $i \in C$ es visitado en algún tiempo previo a $j\in\{C: j\neq i\}$. $D_{p_{ij}} \in \{0,1\}$.
+\item $u_i$: Especifica la posición del nodo $i \in N_+$ en el camino del camión. Usada para evitar subrutas del camión, y así hacer que si un dron va hacia un nodo, el camión no esté obligado a pasar por ahí. $D_{u_i} \in \{1,c+2\}$.
 \end{itemize}
 
-Luego, los indices de las variables tienen los siguientes dominios:
+Luego, los índices de las variables tienen los siguientes dominios:
 \begin{itemize}
 \item $i \in N_0$: Nodos de donde se puede partir.
-\item $j \in N_+$: Nodos donde se pueden viajar.
-\item $k \in P$: Nodos viajables por el dron
+\item $j \in N_+$: Nodos donde se puede viajar.
+\item $k \in P$: Nodos viajables por el dron.
 \end{itemize}
 
 \subsection{Función Objetivo}
 
-La función objetivo trata de minimizar el tiempo en el que se llega de vuelta al deposito inicial. Por lo tanto, nos queda de la forma:
+La función objetivo trata de minimizar el tiempo en el que se llega de vuelta al depósito inicial. Por lo tanto, queda de la forma:
 
 \begin{equation}
 f = \min t_{c+1} \tag{1}
@@ -200,12 +200,11 @@ p_{ij} &\in \{0, 1\} && \forall i \in N_0, \; j \in C \setminus \{i\} \tag{32}
 
 \subsection{Variaciones}
 
-Las variaciones que vamos a presentar trabajan directamente sobre el modelo presentado.
+Las variaciones que se presentan trabajan directamente sobre el modelo presentado.
 
 \begin{itemize}
-\item En \cite{ponza2016optimization}, las variables de tiempo $t_i$ y $t'_i$ son definidas como el tiempo de llegada al nodo $i$, tanto para el camión y para el dron. En el paper se denomina a las variables como $t_i^T$ y $t_i^D$ como el instante en el que el dron esta listo para salir. Esto sirve para calcular de mejor manera la restricción de que el dron se encuentre esperando a la llegada del camión. También mencionan que el modelo original no contabiliza el tiempo de lanzamiento ($S_L$) dentro del gasto de batería.
-\item En \cite{freitas2021exact} se eliminan las variables auxiliares $u_i$, realizando un indexamiento de los tiempos en que el camión hace las visitas, definido como $l \in L = \{0,\dots,n\}$. Esto hace que el problema sea más optimo de resolver.
-\item En \cite{boysen2018drone}, el modelo va más de resolver que drones se pueden agregar a un camino de camión ya prefijado, es decir, el modelo apunta a agregar drones en la ruta ya resuelta de un VRP.
-\item En \cite{thomas2024collaborative}, se agregan parametros para poder hacer que el dron vuelva al camión durante el trayecto entre nodos, en vez de tener que estar esperando en una ubicación especifica. Este análisis también se puede ver en También aumentan la complejidad del dron, añadiendo consumos distintos de batería según la actividad que el dron este realizando (viajando, cargando, volviendo). 
+\item En \cite{ponza2016optimization}, las variables de tiempo $t_i$ y $t'_i$ son definidas como el tiempo de llegada al nodo $i$, tanto para el camión como para el dron. En el artículo se denomina a las variables $t_i^T$ y $t_i^D$ como el instante en el que el dron está listo para salir. Esto sirve para calcular de mejor manera la restricción de que el dron se encuentre esperando a la llegada del camión. También mencionan que el modelo original no contabiliza el tiempo de lanzamiento ($S_L$) dentro del gasto de batería.
+\item En \cite{freitas2021exact} se eliminan las variables auxiliares $u_i$, realizando un indexamiento de los tiempos en que el camión hace las visitas, definido como $l \in L = \{0,\dots,n\}$. Esto hace que el problema sea más óptimo de resolver.
+\item En \cite{boysen2018drone}, el modelo trata más de resolver qué drones se pueden agregar a un camino de camión ya prefijado, es decir, el modelo apunta a agregar drones en la ruta ya resuelta de un VRP.
+\item En \cite{thomas2024collaborative}, se agregan parámetros para poder hacer que el dron vuelva al camión durante el trayecto entre nodos, en vez de tener que estar esperando en una ubicación específica. También aumentan la complejidad del dron, añadiendo consumos distintos de batería según la actividad que el dron esté realizando (viajando, cargando, volviendo). 
 \end{itemize}
-

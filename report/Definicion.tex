@@ -6,38 +6,38 @@
 
 \subsection{Contexto}
 
-Truck Drone Parcel Delivery Problem (TDPDP) es un problema donde se busca encontrar una ruta para un camión de entregas, el cual debe de pasar por varios puntos de entrega. TDPDP tiene la adición de un dron el cual permite hacer entregas con tiempos distintos a los del camión.
+El Truck Drone Parcel Delivery Problem (TDPDP) es un problema donde se busca encontrar una ruta para un camión de entregas, el cual debe pasar por varios puntos de entrega. El TDPDP tiene la adición de un dron, el cual permite hacer entregas con tiempos distintos a los del camión.
 
 \subsection{Definición Formal}
 
-Para poder entender el problema de TDPDP, primero mostraremos que es una variante de otros problemas más conocidos en el mundo de la optimización. Estos corresponden al TSP (The Salesman Problem, o El problema del Vendedor Viajero en español) y el problema de VRP (Vehicle Routing Problem, o el Problema de Ruteo de Vehiculos en español). VRP es la variante más cercana a TDPDP, y la cual es también variante de TSP, por lo que explicaremos VRP para poder extenderlo a TDPDP más adelante.
+Para poder entender el problema de TDPDP, primero mostraremos que es una variante de otros problemas más conocidos en el mundo de la optimización. Estos corresponden al TSP (The Traveling Salesman Problem, o el Problema del Vendedor Viajero en español) y el problema de VRP (Vehicle Routing Problem, o el Problema de Ruteo de Vehículos en español). El VRP es la variante más cercana al TDPDP, y la cual es también variante del TSP, por lo que explicaremos el VRP para poder extenderlo al TDPDP más adelante.
 
-VRP , definido según \cite{Irnich2014FamilyVRP}, se tiene que \textbf{dado} un set de entregadas solicitadas (también entendidas como ubicaciones) y una cantidad de vehiculos, entonces la \textbf{tarea} es determinar un set de ruta para cada uno de los vehiculos para poder llegar a las ubicaciones de entrega a un costo mínimo, es decir, decidir que vehiculo va a cuales ubicaciones y en que secuencia para que todas (o algunas) de las ubicaciones sean cubiertas. 
+En el VRP, definido según \cite{Irnich2014FamilyVRP}, se tiene que \textbf{dado} un conjunto de entregas solicitadas (también entendidas como ubicaciones) y una cantidad de vehículos, entonces la \textbf{tarea} es determinar una ruta para cada uno de los vehículos para poder llegar a las ubicaciones de entrega a un costo mínimo, es decir, decidir qué vehículo va a cuáles ubicaciones y en qué secuencia para que todas (o algunas) de las ubicaciones sean cubiertas. 
 
-De la definición de VRP, se define una variante conocida como CVRP, la cual se acerca más a nuestra definición para el TDPDP. Esta variante tiene un punto de inicio (conocido como depot, deposito en español), y se le hace también referencia a puntos (o ubicaciones) de entrega. El problema debe resolverse desde el punto de inicio definido hacia cada una de las ubicaciones de entrega. Las restricciones del problema siguen a VRP, es decir, se tienen también la restricción de visitar todas las ubicaciones de entrega, pero se le incluye la restricción de empezar desde depot y volver a depot.
+De la definición del VRP, se define una variante conocida como CVRP, la cual se acerca más a nuestra definición para el TDPDP. Esta variante tiene un punto de inicio (conocido como depot, depósito en español), y se le hace también referencia a puntos (o ubicaciones) de entrega. El problema debe resolverse desde el punto de inicio definido hacia cada una de las ubicaciones de entrega. Las restricciones del problema siguen al VRP, es decir, se tiene también la restricción de visitar todas las ubicaciones de entrega, pero se le incluye la restricción de empezar desde el depósito y volver al depósito.
 
-Conociendo el problema de VRP, TDPDP es una variante de VRP en la que se incluye un dron, el cual permite realizar entregas en conjunto al vehiculo. Siguiendo la definición realizada en \cite{Murray2015Flying}, este dron tiene las caracteristicas de que su costo para viajar de un nodo puede ser distinto que al costo del camión y, adicionalmente, hacer entregas en paralelo mientras el camión visita otros nodos, lo cual puede hacer el costo asociado al viaje más bajo y los tiempos de entrega más cortos. 
+Conociendo el problema de VRP, el TDPDP es una variante del VRP en la que se incluye un dron, el cual permite realizar entregas en conjunto al vehículo. Siguiendo la definición realizada en \cite{Murray2015Flying}, este dron tiene las características de que su costo para viajar desde un nodo puede ser distinto al costo del camión y, adicionalmente, puede hacer entregas en paralelo mientras el camión visita otros nodos, lo cual permite hacer el costo asociado al viaje más bajo y los tiempos de entrega más cortos. 
 
 
 \subsection{Restricciones}
 
-Adicionalmente a las restricciones de VRP, se tienen restricciones exclusivas de TDPDP relacionadas con el dron. Según \cite{Murray2015Flying}, hay restricciones con respecto a la cantidad de drones por camión, la bateria del dron, y las velocidades del dron. Solo puede haber un dron asociado a cada camión, el cual al salir del camión debe de reunirse con este en algún nodo posterior. El dron tiene una bateria asociada la cual indica cuanta distancia puede recorrer y cuanto tiempo puede quedarse en espera (Por ejemplo, un dron podria esperar en un nodo al camión siempre y cuando le quede bateria cuando este llegue), y por ultimo la velocidad del dron limita que nodos pueden visitarse.
+Adicionalmente a las restricciones del VRP, se tienen restricciones exclusivas del TDPDP relacionadas con el dron. Según \cite{Murray2015Flying}, hay restricciones con respecto a la cantidad de drones por camión, la batería del dron, y las velocidades del dron. Solo puede haber un dron asociado a cada camión, el cual al salir del camión debe reunirse con este en algún nodo posterior. El dron tiene una batería asociada, la cual indica cuánta distancia puede recorrer y cuánto tiempo puede quedarse en espera (por ejemplo, un dron podría esperar en un nodo al camión siempre y cuando le quede batería cuando este llegue), y por último la velocidad del dron limita qué nodos pueden visitarse.
 
 \subsection{Objetivo}
 
-El objetivo de TDPDP es minimizar el tiempo de retorno más tardio de ambos vehiculos al deposito, el cual se traduce a saber cual es la ruta que se realiza. 
+El objetivo del TDPDP es minimizar el tiempo de retorno más tardío de ambos vehículos al depósito, lo cual se traduce en saber cuál es la ruta que se realiza. 
 
-Las soluciones del problema vienen según la selección de que nodos se visitan con el camión, cuales se visitan con el dron, y en que orden se realizan estas entregas. La ventaja de este modelo en comparación con un VRP es el tiempo que se puede ahorrar utilizando el dron para entregas más rapidas que utilizadas con el camión.
+Las soluciones del problema vienen según la selección de qué nodos se visitan con el camión, cuáles se visitan con el dron, y en qué orden se realizan estas entregas. La ventaja de este modelo en comparación con un VRP es el tiempo que se puede ahorrar utilizando el dron para entregas más rápidas que las realizadas con el camión.
 
 \subsection{Complejidad}
 
-Se tiene evidencia con respecto a que el problema de TDPDP es NP-Hard. El problema de VRP es definido como NP-Hard en \cite{Irnich2014FamilyVRP}, y al ser TDPDP una variante de VRP, se puede entender que el problema es NP-Hard. Este fundamento es desarrollado en \cite{ponza2016optimization} mediante una reducción al problema de TSP, el cual VRP también se reduce. El análisis de complejidad se hace más profundo en \cite{boysen2018drone}, en donde se fundamenta que el problema se mantiene NP-Hard para instancias en donde se varia el numero de drones o donde se tiene el camión con una ruta prefijada.
+Se tiene evidencia con respecto a que el problema de TDPDP es NP-Hard. El problema de VRP es definido como NP-Hard en \cite{Irnich2014FamilyVRP}, y al ser el TDPDP una variante del VRP, se puede entender que el problema es NP-Hard. Este fundamento es desarrollado en \cite{ponza2016optimization} mediante una reducción al problema del TSP, al cual el VRP también se reduce. El análisis de complejidad se hace más profundo en \cite{boysen2018drone}, en donde se fundamenta que el problema se mantiene NP-Hard para instancias en donde se varía el número de drones o donde se tiene al camión con una ruta prefijada.
 
 Dado que el problema es NP-Hard, se tiene que el problema tarda un tiempo no polinomial en encontrar una solución.
 
 \subsection{Variantes}
 
-Se indica una tabla con las princiales variantes del problema, variando generalmente en la forma en que el camión y el dron distribuyen la carga. Se hara profundidad en algunas de estas interpretaciones en el análisis del estado de arte.
+Se indica una tabla con las principales variantes del problema, variando generalmente en la forma en que el camión y el dron distribuyen la carga. Se hará profundidad en algunas de estas interpretaciones en el análisis del estado del arte.
 
 \begin{table}[H]
 \centering
@@ -51,17 +51,17 @@ FSTSP & Murray y Chu (2015) \cite{Murray2015Flying} & Un camión y un dron colab
 \hline
 PDSTSP & Murray y Chu (2015) \cite {Murray2015Flying} & Uno o varios drones operan desde el depósito en paralelo al camión, realizando entregas directas sin necesidad de sincronización directa con la ruta terrestre. \\
 \hline
-FSTSP (OPL / CPLEX) & Andrea Ponza (2016) \cite{ponza2016optimization} & Reformulación con variables de tiempo que indican cuando esta listo para partir ($t^T_i, t^D_i$), optimizando la cota de autonomía de batería del dron. \\
+FSTSP (OPL / CPLEX) & Andrea Ponza (2016) \cite{ponza2016optimization} & Reformulación con variables de tiempo que indican cuándo está listo para partir ($t^T_i, t^D_i$), optimizando la cota de autonomía de batería del dron. \\
 \hline
 TSP-D & Agatz et al. (2018) / Ponza (2016) \cite{ponza2016optimization} & Variante flexible que permite configuraciones donde los nodos de lanzamiento y recuperación pueden coincidir. \\
 \hline
-DSP-A & Boysen et al. (2018) \cite{boysen2018drone} & Programación de drones con ruta de camión fija bajo Política A (despegue y retorno en la misma parada. Polinomial para 1 dron y NP-hard para múltiples drones. \\
+DSP-A & Boysen et al. (2018) \cite{boysen2018drone} & Programación de drones con ruta de camión fija bajo Política A (despegue y retorno en la misma parada). Polinomial para 1 dron y NP-hard para múltiples drones. \\
 \hline
-DSP-B & Boysen et al. (2018) \cite{boysen2018drone} & Programación con ruta fija bajo Política B (retorno a lo más en la parada sucesiva. Resoluble en tiempo polinomial mediante reducción al Problema de Asignación Lineal (LAP). \\
+DSP-B & Boysen et al. (2018) \cite{boysen2018drone} & Programación con ruta fija bajo Política B (retorno a lo más en la parada sucesiva). Resoluble en tiempo polinomial mediante reducción al Problema de Asignación Lineal (LAP). \\
 \hline
-DSP-C & Boysen et al. (2018) \cite{boysen2018drone} & Programación con ruta fija bajo Política C (retorno irrestricto en cualquier parada futura. NP-hard por reducción. \\
+DSP-C & Boysen et al. (2018) \cite{boysen2018drone} & Programación con ruta fija bajo Política C (retorno irrestricto en cualquier parada futura). NP-hard por reducción. \\
 \hline
-CTDRSP-ELR & Thomas et al. (2024) \cite{thomas2024collaborative} & Permite que el dron pueda volver al camión si este esta en marcha. Incluye despliegue en parada fija, despliegue en movimiento, recuperación en movimiento y recuperación en parada fija. \\
+CTDRSP-ELR & Thomas et al. (2024) \cite{thomas2024collaborative} & Permite que el dron pueda volver al camión si este está en marcha. Incluye despliegue en parada fija, despliegue en movimiento, recuperación en movimiento y recuperación en parada fija. \\
 \hline
 Modelo PD & Moshref-Javadi y Winkenbach (2021) \cite{moshrefjavadi2021applications} & Reparto con drones desde depósitos fijos hacia clientes sin necesidad de un camión. Limitado por la capacidad de batería del UAV y la congestión en el almacén. \\
 \hline
