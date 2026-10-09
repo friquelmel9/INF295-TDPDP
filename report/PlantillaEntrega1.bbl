@@ -1,0 +1,57 @@
+\begin{thebibliography}{1}
+
+\bibitem{boysen2018drone}
+Nils Boysen, Dirk Briskorn, Stefan Fedtke, and Stefan Schwerdfeger.
+\newblock Drone delivery from trucks: Drone scheduling for given truck routes.
+\newblock {\em Networks}, 72(4):506--527, 2018.
+
+\bibitem{freitas2021exact}
+Júlia~C. Freitas, Puca Huachi~V. Penna, and Túlio A.~M. Toffolo.
+\newblock Exact and heuristic approaches to drone delivery problems.
+\newblock {\em arXiv preprint arXiv:2108.01996}, 2021.
+
+\bibitem{Irnich2014FamilyVRP}
+Stefan Irnich, Paolo Toth, and Daniele Vigo.
+\newblock The family of vehicle routing problems.
+\newblock In Paolo Toth and Daniele Vigo, editors, {\em Vehicle Routing:
+  Problems, Methods, and Applications}, volume~18 of {\em MOS-SIAM Series on
+  Optimization}, chapter~1, pages 1--33. Society for Industrial and Applied
+  Mathematics, Philadelphia, PA, 2nd edition, 2014.
+
+\bibitem{moshrefjavadi2021applications}
+Mohammad Moshref-Javadi and Matthias Winkenbach.
+\newblock Applications and research avenues for drone-based models in
+  logistics: A classification and review.
+\newblock {\em Expert Systems with Applications}, 177:114854, 2021.
+
+\bibitem{Murray2015Flying}
+Chase~C. Murray and Amanda~G. Chu.
+\newblock The flying sidekick traveling salesman problem: Optimization of
+  drone-assisted parcel delivery.
+\newblock {\em Transportation Research Part C: Emerging Technologies},
+  54:86--109, 2015.
+
+\bibitem{ponza2016optimization}
+Andrea Ponza.
+\newblock Optimization of drone-assisted parcel delivery.
+\newblock Tesi di laurea magistrale in ingegneria gestionale, Università degli
+  Studi di Padova, Padova, Italia, 2016.
+
+\bibitem{stell2022drone}
+Jonathan Stell.
+\newblock Drone delivery of medications and healthcare supplies.
+
+\bibitem{thomas2024collaborative}
+Teena Thomas, Sharan Srinivas, and Chandrasekharan Rajendran.
+\newblock Collaborative truck multi-drone delivery system considering drone
+  scheduling and en route operations.
+\newblock {\em Annals of Operations Research}, 339(1):693--739, 2024.
+
+\bibitem{transinfo_drones}
+{Trans.info}.
+\newblock The evolution of delivery drones in logistics.
+\newblock
+  \url{https://trans.info/en/the-evolution-of-delivery-drones-in-logistics-173683}.
+\newblock Consultado el 2026-10-07.
+
+\end{thebibliography}

@@ -1,5 +1,30 @@
-La informaci\'on que describen en este punto se basa en los estudios realizados con antelaci\'on respecto al tema.
-Lo m\'as importante que se ha hecho hasta ahora con relaci\'on al problema. Deber\'ia responder preguntas como las siguientes:
-?`cu\'ando surge?, ?`qu\'e m\'etodos se han usado para resolverlo?, ?`cu\'ales son los mejores algoritmos que se han creado hasta
-la fecha?, ?`qu\'e representaciones han tenido los mejores resultados?, ?`cu\'al es la tendencia actual para resolver el problema?, tipos de movimientos, heur\'isticas, m\'etodos completos, tendencias, etc... Puede incluir gr\'aficos comparativos o explicativos.\\
+%La informaci\'on que describen en este punto se basa en los estudios realizados con antelaci\'on respecto al tema.
+%Lo m\'as importante que se ha hecho hasta ahora con relaci\'on al problema. Deber\'ia responder preguntas como las siguientes:
+%?`cu\'ando surge?, ?`qu\'e m\'etodos se han usado para resolverlo?, ?`cu\'ales son los mejores algoritmos que se han creado hasta
+%la fecha?, ?`qu\'e representaciones han tenido los mejores resultados?, ?`cu\'al es la tendencia actual para resolver el problema?, tipos de movimientos, heur\'isticas, m\'etodos completos, tendencias, etc... Puede incluir gr\'aficos comparativos o explicativos.\\
 
+\subsection{Surgimiento}
+
+Los drones han sido utilizado por años en trabajos militares, pero no fue hasta el 2006 donde se permitio por primera vez en Estados Unidos utilizar drones para fines comerciales. Tras esto, ha habido un auge de la utilización de los drones. En \cite{moshrefjavadi2021applications}, se tiene que ya se utilizan drones para servicios de comercio (como Amazon o Walmart), en servicios de alimentación (como Coca Cola o Domino), e incluso ha sido utilizado en servicios de emergencia. Por ejemplo, en \cite{stell2022drone} se menciona la utilización de drones para hacer entregas de medicamento durante el periodo del COVID19.
+
+Según \cite{transinfo_drones}, los drones han surgido de manera explosiva en logistica debido a su capacidad de bajar los costos de entrega. Efectivamente, estudios como \cite{moshrefjavadi2021applications} explican que el costo de entrega por paquete puede disminuir ahora $0.88$ por entrega, a diferencia de utilizar unicamente camiones con un costo aproximado de $5.99$ dolares.
+
+El trabajo de Murray \cite{Murray2015Flying} es considerado una de las primeras referencias con respecto al problema en un formato de optimización. Hay varios algoritmos que utilizan este trabajo como una base para sus propias propuestas. Algunos trabajos que usan el trabajo de Murray son \cite{ponza2016optimization} y \cite{freitas2021exact}.
+
+\subsection{Métodos de Resolución}
+
+El trabajo de Murray ya hace referencia a la complejidad del problema. Como hablamos previamente, el problema se considera NP-Hard, por lo que no se puede resolver en tiempo polinomial. Frente a esto, se han utilizado varias formulas, sacando conclusiones según el trabajo.
+
+Se han realizado enfoques de técnicas de resolución completas. En \cite{Murray2015Flying}, se utilizan solvers CPLEX y Gurobi, lo cual terminan de saturar el problema con una cantidad de $10$ clientes. En \cite{freitas2021exact}, se utiliza una indexación de los momentos del camión en un conjunto $L$, lo cual permite eliminarse el tiempo de computación que se utiliza en el trabajo de Murray, dado que este necesitaba de eliminar sub-tours mediante una variable auxiliar $u_i$. En \cite{moshrefjavadi2021applications} se menciona utilización de algoritmos de Branch-And-Cut.
+
+Se han realizado enfoques de técnicas metaheuristicas. En \cite{freitas2021exact} se hace uso de una heuristica constructiva haciendo una descomposición del problema asignando inicialmente las entregas dentro del radio del dron para dejar las demás al camión. Se hace referencia a enfoques de resolución geneticos en \cite{moshrefjavadi2021applications}.
+
+En \cite{ponza2016optimization} se implemento una metaheuristica basada en algoritmo de Monte Carlo (haciendo intercambios entre rutas terrestres y aereas). En \cite{freitas2021exact} desarrollaron un algoritmo propio basado en la técnica de memoria Tabu, construyendo una ruta inicial y trabajando sobre esta, haciendo intercambios entre entregas de dron y entregas de camión. Utiliza la lista Tabu para evitarse los ciclos.
+
+Además, se han hecho transformaciones del problema para trabajarlo de manera equivalente. En \cite{boysen2018drone}, se propone fijar la ruta del camión y utlizar un unico dron con la condición de volver a la misma parada de lanzamiento. Esta forma del problema se puede resolver en tiempo polinomial usando un algoritmo voraz. Agregar que el dron debe volver en la misma parada o en una consecutiva también puede resolverse en tiempo polinomial haciendo uso de un algoritmo de asignación lineal.
+
+\subsection{Tendencias}
+
+La tendencia va de resolver el problema mediante heuristicas incompletas. El autor \cite{moshrefjavadi2021applications} hace comparación de las técnicas utilizadas por varios articulos cientificos, llegando a que un $53\%$ recurre a heuristicas y metaheuristicas para la resolución del problema. En general, los algoritmos completos se reservan para obtener instancias iniciales o en caso de que el tamaño del problema sea pequeño (No más de $10$). Las heuristicas y metaherusticias se utilizan con valores cercanos al $n=200$
+
+Del trabajo de \cite{moshrefjavadi2021applications} se concluye que la técnica principal es hacer primero el camino del camión (es decir, resolver un problema de VRP) y luego ir realizando cambios dentro de este camino para agregarle entregas de dron. La idea es ir viendo que caminos de dron permite que disminuya el tiempo total, es decir, seria hacer algoritmos constructivos, teniendo la solución inicial y mejorandola de forma recurrente. También puede pasar que agregar algún dron a cierta entrega no mejore el tiempo final, sin embargo se entiende que se intenta agregarlo ya que el dron permite traer oportunidades de mejora considerable.
