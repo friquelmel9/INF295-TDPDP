@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=latex 2026.8.18)  9 OCT 2026 02:17
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026/Arch Linux) (preloaded format=latex 2026.8.18)  9 OCT 2026 10:41
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -223,10 +223,10 @@ LaTeX Warning: Unused global option(s):
     [letter].
 
 (./PlantillaEntrega1.aux
-LaTeX Info: Redefining \. on input line 9.
-LaTeX Info: Redefining \% on input line 9.
+LaTeX Info: Redefining \. on input line 10.
+LaTeX Info: Redefining \% on input line 10.
 Package babel Info: 'spanish' activates 'spanish' shorthands.
-(babel)             Reported on input line 9.
+(babel)             Reported on input line 10.
 )
 \openout1 = `PlantillaEntrega1.aux'.
 
@@ -315,6 +315,11 @@ Underfull \hbox (badness 10000) in paragraph at lines 54--54
  []
 
 
+Underfull \hbox (badness 1178) in paragraph at lines 54--55
+[]\OT1/cmr/m/n/9 Reformulaci^^Son con va-ria-bles de tiem-po que in-di-can
+ []
+
+
 Underfull \hbox (badness 10000) in paragraph at lines 64--64
 []\OT1/cmr/m/n/9 Thomas et al.
  []
@@ -329,15 +334,10 @@ Overfull \hbox (19.21284pt too wide) in paragraph at lines 46--69
  [][] 
  []
 
-) (./Arte.tex [3]) (./Modelo.tex [4] [5] [6] [7] [8]) (./Conclusiones.tex)
-(./LLM.tex
-Underfull \hbox (badness 10000) in paragraph at lines 1--3
-
- []
-
-) [9] (./PlantillaEntrega1.bbl) [10] (./PlantillaEntrega1.aux
-LaTeX Info: Redefining \. on input line 9.
-LaTeX Info: Redefining \% on input line 9.
+) (./Arte.tex [3] [4]) (./Modelo.tex [5] [6] [7] [8]) (./Conclusiones.tex
+[9]) (./LLM.tex) [10] (./PlantillaEntrega1.bbl) [11] (./PlantillaEntrega1.aux
+LaTeX Info: Redefining \. on input line 10.
+LaTeX Info: Redefining \% on input line 10.
 )
  ***********
 LaTeX2e <2025-11-01>
@@ -347,10 +347,10 @@ L3 programming layer <2026-01-19>
 Here is how much of TeX's memory you used:
  4041 strings out of 469454
  63781 string characters out of 5469063
- 501847 words of memory out of 5000000
+ 499847 words of memory out of 5000000
  32649 multiletter control sequences out of 15000+600000
  638286 words of font info for 81 fonts, out of 8000000 for 9000
  40 hyphenation exceptions out of 8191
- 57i,14n,65p,765b,365s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 57i,14n,65p,908b,365s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on PlantillaEntrega1.dvi (10 pages, 39804 bytes).
+Output written on PlantillaEntrega1.dvi (11 pages, 46168 bytes).
