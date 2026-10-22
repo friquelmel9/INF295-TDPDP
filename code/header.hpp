@@ -42,6 +42,28 @@ struct InstanceTDPDP {
 	
 	int size_F; // Tamaño del conjunto F
 	std::vector<DronFlight> F; // Conjunto de los posibles caminos para un dron
+	
+	/*
+	 * Función auxiliar que imprime los datos de la instancia
+	 * */
+	void print(){
+		if(!is_instance){
+			std::cout << "Instancia no cargada" << std::endl;
+			return;
+		}
+		std::cout << "==============================================" << std::endl;
+		std::cout << "                 Parámetros                   " << std::endl;
+		std::cout << "==============================================" << std::endl;
+		std::cout << "c (#Clients): " << c << std::endl;
+		std::cout << "SL (Time Setup Launch): " << SL << std::endl;
+		std::cout << "SR (Time Setup Recover): " << SR << std::endl;
+		std::cout << "E (Endurance): " << E << std::endl;
+		std::cout << "==============================================" << std::endl;
+		std::cout << "                   Cdrones                    " << std::endl;
+		std::cout << "==============================================" << std::endl;
+		for (Client client_cd : Cdrones){std::cout << client_cd << " ";}
+		std::cout << std::endl;
+		}
 };
 
 /* Strucut que representa una solución a un problema TDPDP (Individuo en lo que corresponde a algoritmo evolutivo)
