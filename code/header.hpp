@@ -88,9 +88,19 @@ struct Individual {
 
 Time fitness(const Individual indv, const TDPDP tdpdp); // Función que evalua el individuo del TDPDP
 Individual crossing(const Individual father1, const Individual father2, const TDPDP tdpdp); // Genera un hijo de dos padres
-Individual mutation(Individual &indv, const TDPDP tdpdp); // Genera una mutuación dentro del individuo irignal
+Individual mutation(Individual &indv, const TDPDP tdpdp); // Genera una mutuación dentro del individuo original
 void repair(Individual &indv, const TDPDP tdpdp); // Repara algún individuo
+std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int &n); // Genera la población inicial
+
+/* Conjunto de declaración de funciones para la obtención optima del dron.
+ * */
+
 void dpDrones(Individual &indv, const TDPDP tdpdp); // Genera mediante un dp la asignación de los drones 
 void greedyDrones(Individual &ind, const TDPDP tdpdp); // Genera mediante un greedy la asignación de los drones						
+
+/* Utilidades 
+ * */
+
+void read_file(std::string filepath, TDPDP &inst); // Lectura de un archivo instancia
 
 #endif

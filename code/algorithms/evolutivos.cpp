@@ -117,3 +117,29 @@ Individual mutation(Individual &indv, const TDPDP tdpdp){
 void repair(Individual &indv, const TDPDP tdpdp){
 
 }
+
+/* Función que genera instancias iniciales para el tdpdp de manera aleatoria
+ *
+ * Parámetros
+ * - tdpdp (TDPDP): Datos del problema tdpdp asociado a las instancias
+ * - n (int): Cantidad de individuos en la población
+ *
+ * Retorno:
+ * - Retorna una población donde cada individuo viene con los datos del tsp_seq completados.
+ * */
+std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int &n){
+	std::vector<Individual> population;
+	population.reserve(n);
+
+	std::vector<int> base_tour(tdpdp.c);
+	for(Client i=1; i<=tdpdp.c; ++i){base_tour[i-1] = i;}
+
+	for(int j=0; j<n; ++j){
+		std::vector<client> tour = base_tour;
+		std::shuffle(tour.begin(), tour.end(), rng);
+		population.push_back(tour);
+	}
+
+	return population;
+}
+
