@@ -73,7 +73,7 @@ struct InstanceTDPDP {
  * Contiene la información unica de la solución, no incluye información del tipo de problema
  * */
 struct Individual {
-	std::vector<Path> sequence; // Secuencia de viajes.
+	std::vector<Path> sequence; // Secuencia de viajes. Esto indica que viajes se hicieron sin incluir el 0. Por ejemplo, sequence = [path1,path2,path3] seria decir que va de path0->path1, path1->path2, path2->path3 y path3->path0
 	
 	Eval eval; // Evaluación del individuo actual
 	bool valid = false; // Indica si la secuencia actual es valida. Default falso hasta comprobar contrario.

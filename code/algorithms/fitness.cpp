@@ -1,17 +1,24 @@
+#include <iostream>
+#include <vector>
+#include <unordered_set>
+#include <algorithm>
+#include "header.hpp"
+
 /*
  * Función que realiza la evaluación de un individuo
  *
  * Parámetros:
- * - indv (Individual): individuo a evaluar
+ * - indv (Individual): individuo a evaluar (su sequence no incluye depósito inicial ni final)
  * - tdpdp (InstanceTDPDP): instancia
  *
  * Retorno:
- * - Eval: tiempo total de retorno al depósito final (parcel)
+ * - Eval: tiempo total de retorno de camión y dron al depósito final (parcel)
  * */
 Eval fitness(const Individual indv, const InstanceTDPDP tdpdp){
 	const Client start_depot = 0;
 	const Client end_depot = tdpdp.c + 1;
 
+	// Si no hay paradas en la secuencia, el camión viaja directo del depósito inicial al final
 	if (indv.sequence.empty()) {
 		return tdpdp.tauTruck[start_depot][end_depot];
 	}
@@ -21,13 +28,14 @@ Eval fitness(const Individual indv, const InstanceTDPDP tdpdp){
 	size_t idx = 0;
 	const size_t n = indv.sequence.size();
 
-	// Si la secuencia explícitamente incluye el depósito de inicio como primera parada de camión
-	if (n > 0 && indv.sequence[0].client == start_depot && indv.sequence[0].type == 1) {
+	// Si la secuencia explícitamente incluyera el depósito 0 al inicio, se salta
+	if (n > 0 && indv.sequence[0].client == start_depot && indv.sequence[0].type == TRUCK_DELIVERY) {
 		idx++;
 	}
 
 	while (idx < n) {
 		if (indv.sequence[idx].type == TRUCK_DELIVERY) {
+			// Entrega atendida por el camión
 			Client next_truck = indv.sequence[idx].client;
 			current_time += tdpdp.tauTruck[current_truck][next_truck];
 			current_truck = next_truck;
@@ -41,35 +49,35 @@ Eval fitness(const Individual indv, const InstanceTDPDP tdpdp){
 			Time drone_flight_time = 0.0;
 			Client prev_drone_node = launch_node;
 
-			while (idx < n && indv.sequence[idx].type == 0) {
+			while (idx < n && indv.sequence[idx].type == DRON_DELIVERY) {
 				Client drone_client = indv.sequence[idx].client;
 				drone_flight_time += tdpdp.tauDrone[prev_drone_node][drone_client];
 				prev_drone_node = drone_client;
 				idx++;
 			}
 
-			// Nodo de encuentro k (recuperación del dron)
-			// Es la siguiente parada del camión, o el depósito final si no quedan paradas
+			// Nodo de encuentro k (recuperación del dron):
+			// Es la siguiente parada de camión en la secuencia, o el depósito final si no quedan paradas
 			Client recovery_node = end_depot;
 			bool recovery_in_sequence = false;
 
-			if (idx < n && indv.sequence[idx].type == 1) {
+			if (idx < n && indv.sequence[idx].type == TRUCK_DELIVERY) {
 				recovery_node = indv.sequence[idx].client;
 				recovery_in_sequence = true;
 			}
 
-			// Completar el tramo de vuelo del dron hasta el nodo k
+			// Tramo de vuelo del dron hasta el nodo de reencuentro k
 			drone_flight_time += tdpdp.tauDrone[prev_drone_node][recovery_node];
 
 			// Tiempos de llegada al nodo k
 			Time drone_arrival = launch_time + tdpdp.SL + drone_flight_time;
 			Time truck_arrival = launch_time + tdpdp.SL + tdpdp.tauTruck[launch_node][recovery_node];
 
-			// En el nodo k se espera al que llegue más tarde (máximo entre ambos) y se suma el tiempo de recuperación
+			// En el nodo k se sincronizan: máximo entre llegada de camión y dron, más tiempo de recuperación SR
 			current_time = std::max(drone_arrival, truck_arrival) + tdpdp.SR;
 			current_truck = recovery_node;
 
-			// Si el nodo de recuperación formaba parte de la secuencia, se marca como visitado
+			// Si el nodo k estaba en la secuencia como parada de camión, ya fue visitado
 			if (recovery_in_sequence) {
 				idx++;
 			}
