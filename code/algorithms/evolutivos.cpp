@@ -82,6 +82,11 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
 	return current_time;
 }
 
+// Generador de números aleatorios para operadores evolutivos
+namespace {
+	std::mt19937 rng(std::random_device{}());
+}
+
 /* Función que realiza el cruzamiento (crossing) de dos padres
  * El cruzamiento considera unicamente los caminos (TSPSP). Luego, los drones se asignan usando las función de dpDrones o greedyDrones.
  *
@@ -94,7 +99,83 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
  * - Retorna una nueva instancia del problema con el cruzamiento de ambos padres. 
  * */
 Individual crossing(const Individual father1, const Individual father2, const TDPDP tdpdp){
-	return father1;
+	Individual child;
+	const int n = static_cast<int>(father1.tsp_seq.size());
+
+	// Casos base o secuencias vacías / unarias
+	if (n == 0) {
+		return child;
+	}
+	if (n == 1 || father2.tsp_seq.size() != static_cast<size_t>(n)) {
+		child.tsp_seq = father1.tsp_seq;
+		return child;
+	}
+
+	// Selección de puntos de corte para la subsecuencia continua del Padre 1
+	std::uniform_int_distribution<int> dist(0, n - 1);
+	int cut1 = dist(rng);
+	int cut2 = dist(rng);
+	if (cut1 > cut2) {
+		std::swap(cut1, cut2);
+	}
+
+	// Asegurar que la subsecuencia no abarque toda la secuencia si n > 1 para permitir aporte del Padre 2
+	if (n > 2) {
+		while (cut1 == cut2 || (cut1 == 0 && cut2 == n - 1)) {
+			cut1 = dist(rng);
+			cut2 = dist(rng);
+			if (cut1 > cut2) {
+				std::swap(cut1, cut2);
+			}
+		}
+	} else if (n == 2) {
+		cut1 = dist(rng);
+		cut2 = cut1;
+	}
+
+	// Inicializar la secuencia del hijo con valores no válidos (-1)
+	child.tsp_seq.assign(n, -1);
+	std::unordered_set<Client> in_child;
+	in_child.reserve(n);
+
+	// 1. Copiar subsecuencia continua del Padre 1 en las mismas posiciones
+	for (int i = cut1; i <= cut2; ++i) {
+		Client c = father1.tsp_seq[i];
+		child.tsp_seq[i] = c;
+		in_child.insert(c);
+	}
+
+	// 2. Completar los huecos restantes leyendo circularmente del Padre 2 comenzando en cut2 + 1
+	int child_idx = (cut2 + 1) % n;
+	for (int step = 0; step < n; ++step) {
+		int p2_idx = (cut2 + 1 + step) % n;
+		Client candidate = father2.tsp_seq[p2_idx];
+
+		if (in_child.find(candidate) == in_child.end()) {
+			while (child.tsp_seq[child_idx] != -1) {
+				child_idx = (child_idx + 1) % n;
+			}
+			child.tsp_seq[child_idx] = candidate;
+			in_child.insert(candidate);
+			child_idx = (child_idx + 1) % n;
+		}
+	}
+
+	// Resguardo en caso de que alguna secuencia no contenga todos los clientes
+	if (in_child.size() < static_cast<size_t>(n)) {
+		for (Client c = 1; c <= tdpdp.c && in_child.size() < static_cast<size_t>(n); ++c) {
+			if (in_child.find(c) == in_child.end()) {
+				while (child.tsp_seq[child_idx] != -1) {
+					child_idx = (child_idx + 1) % n;
+				}
+				child.tsp_seq[child_idx] = c;
+				in_child.insert(c);
+				child_idx = (child_idx + 1) % n;
+			}
+		}
+	}
+
+	return child;
 }
 
 /* Función que genera una mutuación dentro del individuo original
