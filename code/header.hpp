@@ -9,6 +9,9 @@ using Client = int;
 using Time = double;
 using Eval = double;
 
+const bool TRUCK_DELIVERY = 1;
+const bool DRON_DELIVERY = 0;
+
 /* Struct de camino del dron (Definición F)
  * */
 struct DronFlight{
@@ -71,6 +74,9 @@ struct InstanceTDPDP {
  * */
 struct Individual {
 	std::vector<Path> sequence; // Secuencia de viajes.
+	
+	Eval eval; // Evaluación del individuo actual
+	bool valid = false; // Indica si la secuencia actual es valida. Default falso hasta comprobar contrario.
 };
 
 /*
@@ -78,9 +84,9 @@ struct Individual {
  * (Declaraciones para el algoritmo)
  * */
 
-Eval fitness(const Individual individual);
-Individual crossing(const Individual father1, const Individual father2);
-Individual mutation(Individual &original);
-void repair(Individual &individual);
+Eval fitness(const Individual indv, const InstanceTDPDP tdpdp); // Función que evalua el individuo del TDPDP
+Individual crossing(const Individual father1, const Individual father2, const InstanceTDPDP tdpdp); // Genera un hijo de dos padres
+Individual mutation(Individual &indv, const InstanceTDPDP tdpdp); // Genera una mutuación dentro del individuo irignal
+void repair(Individual &indv, const InstanceTDPDP tdpdp); // Repara algún individuo
 
 #endif
