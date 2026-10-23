@@ -9,29 +9,27 @@ using Client = int;
 using Time = double;
 using Eval = double;
 
+// Constantes para camión
 const bool TRUCK_DELIVERY = 1;
 const bool DRON_DELIVERY = 0;
 
+// Constantes para evaluación
+const bool TO_CALC = 0;
+const bool CALCULATED = 1;
+
 /* Struct de camino del dron (Definición F)
  * */
-struct DronFlight{
+struct DronFlight {
 	Client i; // Nodo inicial del dron
 	Client j; // Cliente atendido por el dron
 	Client k; // Nodo final del dron (encuentro con camión)
 };
 
-/* Struct indica el camino para una sequence
- * */
-struct Path{
-	Client client; // Nodo al que se dirigio
-	bool type; // Tipo. 1 == CAMION, 0 == DRON
-};
-
 /* Struct que representa una instancia de problema TDPDP
  * Contiene la información según el modelo utilizado en el formato de la instancia
  * */
-struct InstanceTDPDP {
-	bool is_instance = false; // Variable auxiliar para saber si la Instancia esta inicializada.
+struct TDPDP {
+	bool isInstance = false; // Variable auxiliar para saber si la Instancia esta inicializada.
 
 	Client c; // Cantidad de clientes
 	Time SL; // Setup Launch Time
@@ -50,7 +48,7 @@ struct InstanceTDPDP {
 	 * Función auxiliar que imprime los datos de la instancia
 	 * */
 	void print(){
-		if(!is_instance){
+		if(!isInstance){
 			std::cout << "Instancia no cargada" << std::endl;
 			return;
 		}
@@ -69,24 +67,23 @@ struct InstanceTDPDP {
 		}
 };
 
-/* Strucut que representa una solución a un problema TDPDP (Individuo en lo que corresponde a algoritmo evolutivo)
- * Contiene la información unica de la solución, no incluye información del tipo de problema
+
+/* Struct que representa una solución del problema TSP (Algoritmo Evolutivo)
  * */
 struct Individual {
-	std::vector<Path> sequence; // Secuencia de viajes. Esto indica que viajes se hicieron sin incluir el 0. Por ejemplo, sequence = [path1,path2,path3] seria decir que va de path0->path1, path1->path2, path2->path3 y path3->path0
+	std::vector<Client> sequence; // Secuencia de clientes. Se asume que el vector no incluye el depot 0 y c+1, si no que incluye unicamente los c clientes.
+	std::vector<DronFlight> dronFlights; // Secuencia de drones utilizadas en el TSP.
 	
-	Eval eval; // Evaluación del individuo actual
-	bool valid = false; // Indica si la secuencia actual es valida. Default falso hasta comprobar contrario.
+	Eval fit = 0; // Valor de evaluación a la secuencia actual
+	bool is_calculated = TO_CALC; // Indica si se ha hecho la evaluación del fitness()
 };
 
-/*
- * FUNCIONES EVOLUTIVAS
- * (Declaraciones para el algoritmo)
+/* Conjunto de declaración de funciones para la implementación evolutiva
  * */
 
-Eval fitness(const Individual indv, const InstanceTDPDP tdpdp); // Función que evalua el individuo del TDPDP
-Individual crossing(const Individual father1, const Individual father2, const InstanceTDPDP tdpdp); // Genera un hijo de dos padres
-Individual mutation(Individual &indv, const InstanceTDPDP tdpdp); // Genera una mutuación dentro del individuo irignal
-void repair(Individual &indv, const InstanceTDPDP tdpdp); // Repara algún individuo
+Eval fitness(const Individual indv, const TDPDP tdpdp); // Función que evalua el individuo del TDPDP
+Individual crossing(const Individual father1, const Individual father2, const TDPDP tdpdp); // Genera un hijo de dos padres
+Individual mutation(Individual &indv, const TDPDP tdpdp); // Genera una mutuación dentro del individuo irignal
+void repair(Individual &indv, const TDPDP tdpdp); // Repara algún individuo
 
 #endif
