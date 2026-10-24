@@ -249,17 +249,19 @@ void repair(Individual &indv, const TDPDP tdpdp){
  * Retorno:
  * - Retorna una población donde cada individuo viene con los datos del tsp_seq completados.
  * */
-std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int &n){
+std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n){
 	std::vector<Individual> population;
 	population.reserve(n);
 
-	std::vector<int> base_tour(tdpdp.c);
+	std::vector<Client> base_tour(tdpdp.c);
 	for(Client i=1; i<=tdpdp.c; ++i){base_tour[i-1] = i;}
 
 	for(int j=0; j<n; ++j){
-		std::vector<client> tour = base_tour;
+		std::vector<Client> tour = base_tour;
 		std::shuffle(tour.begin(), tour.end(), rng);
-		population.push_back(tour);
+		Individual ind;
+		ind.tsp_seq = tour;
+		population.push_back(ind);
 	}
 
 	return population;

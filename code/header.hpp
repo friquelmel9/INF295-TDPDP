@@ -60,15 +60,14 @@ struct TDPDP {
 			return;
 		}
 		std::cout << "==============================================" << std::endl;
-		std::cout << "                 Parámetros                   " << std::endl;
+		std::cout << "                   TDPDP                      " << std::endl;
 		std::cout << "==============================================" << std::endl;
+		std::cout << "                 Parámetros                   " << std::endl;
 		std::cout << "c (#Clients): " << c << std::endl;
 		std::cout << "SL (Time Setup Launch): " << SL << std::endl;
 		std::cout << "SR (Time Setup Recover): " << SR << std::endl;
 		std::cout << "E (Endurance): " << E << std::endl;
-		std::cout << "==============================================" << std::endl;
 		std::cout << "                   Cdrones                    " << std::endl;
-		std::cout << "==============================================" << std::endl;
 		for (Client client_cd : Cdrones){std::cout << client_cd << " ";}
 		std::cout << std::endl;
 		}
@@ -86,6 +85,42 @@ struct Individual {
 	
 	Time fit = 0; // Valor de evaluación a la secuencia actual
 	bool is_calculated = TO_CALC; // Indica si se ha hecho la evaluación del fitness()
+
+	/*
+	 * Función auxiliar que imprime los datos del individuo
+	 * */
+	void print() const {
+		std::cout << "==============================================" << std::endl;
+		std::cout << "                  Individuo                   " << std::endl;
+		std::cout << "==============================================" << std::endl;
+		std::cout << "tsp_seq: ";
+		for (Client c : tsp_seq) {
+			std::cout << c << " ";
+		}
+		std::cout << std::endl;
+
+		std::cout << "truck_seq: ";
+		for (Client c : truck_seq) {
+			std::cout << c << " ";
+		}
+		std::cout << std::endl;
+
+		std::cout << "dron_seq: ";
+		for (size_t idx = 0; idx < dron_seq.size(); ++idx) {
+			std::cout << "{" << dron_seq[idx].i << ", " << dron_seq[idx].j << ", " << dron_seq[idx].k << "}";
+			if (idx + 1 < dron_seq.size()) {
+				std::cout << ", ";
+			}
+		}
+		std::cout << std::endl;
+
+		if (is_calculated == CALCULATED) {
+			std::cout << "fit = " << fit << std::endl;
+		} else {
+			std::cout << "fit = (not calculated)" << std::endl;
+		}
+		std::cout << "==============================================" << std::endl;
+	}
 };
 
 /* Conjunto de declaración de funciones para la implementación evolutiva
@@ -95,7 +130,7 @@ Time fitness(const Individual indv, const TDPDP tdpdp); // Función que evalua e
 Individual crossing(const Individual father1, const Individual father2, const TDPDP tdpdp); // Genera un hijo de dos padres
 Individual mutation(Individual &indv, const TDPDP tdpdp, const int type); // Genera una mutuación dentro del individuo original
 void repair(Individual &indv, const TDPDP tdpdp); // Repara algún individuo
-std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int &n); // Genera la población inicial
+std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n); // Genera la población inicial
 
 /* Conjunto de declaración de funciones para la obtención optima del dron.
  * */
