@@ -189,7 +189,6 @@ Individual crossing(const Individual father1, const Individual father2, const TD
  * - Retorna una nueva instancia del problema con una mutuación respecto al individuo original (indv)
  * */
 Individual mutation(Individual &indv, const TDPDP tdpdp, const int type){
-	(void)tdpdp;
 	Individual mutated;
 	mutated.tsp_seq = indv.tsp_seq;
 
