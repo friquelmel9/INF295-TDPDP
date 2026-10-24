@@ -6,7 +6,7 @@
  * - inst (TDPDP): Instancia a asignar
  * */
 void read_file(std::string filepath, TDPDP &inst){
-	inst.is_instance = false;
+	inst.isInstance = false;
 	std::ifstream file(filepath);
 	if (!file.is_open()){ 
 		throw std::runtime_error("Error: No se pudo abrir el archivo de instancia en " + filepath);
@@ -49,5 +49,5 @@ void read_file(std::string filepath, TDPDP &inst){
 	}
 
 	file.close();
-	inst.is_instance = true;
+	inst.isInstance = true;
 }
