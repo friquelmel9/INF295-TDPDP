@@ -54,7 +54,8 @@
       line("7","8",stroke: (dash: "dotted"))
       line("8","9")
       line("9","5")
-    })
+    }),
+    caption: [Transformación TSP a TDPDP [6][9][10]]
   )
 )
 
@@ -78,7 +79,7 @@ struct Individual {
 #align(center + horizon,
   figure(
     genotipo,
-    caption: [Genotipo y Fenotipo para TDPDP]
+    caption: [Genotipo y Fenotipo para TDPDP [9][10]]
   )
 )
 
@@ -113,7 +114,7 @@ for (Client next_node : truck_stops) {
 
 #align(horizon,
 [
-La evaluación corresponde al tiempo máximo. El algoritmo considera:
+La evaluación corresponde al tiempo máximo. El algoritmo considera: [1][2]
 - Tiempo del camión de ir un nodo a otro
 - En caso de que se lanze un dron, se incluye el tiempo de lanzamiento ($"SL"$)
 - En caso de que se reciba un dron, toma el máximo entre el tiempo de llegada del dron y el tiempo de llegada del camión. Luego le suma el tiempo de recuperación del dron ($"SR"$)
@@ -158,7 +159,7 @@ std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n){
 #align(center + horizon,
   figure(
     poblacion,
-    caption: [Algoritmo de Población Inicial (`generatePopulation`)]
+    caption: [Algoritmo de Población Inicial (`generatePopulation`)[9]]
   )
 )
 

@@ -5,7 +5,7 @@
 #align(center + horizon,
   figure(
     image("assets/amazon-prime.jpg"),
-    caption: [Entrega de Pedidos con Drones (Amazon Air)]
+    caption: [Entrega de Pedidos con Drones (Amazon Air) [1]]
   )
 )
 

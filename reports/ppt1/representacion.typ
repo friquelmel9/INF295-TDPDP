@@ -67,7 +67,7 @@
         line("3","4")
         line("4","0")
       }),
-      caption: [Problema VRP (Con Parcel) Instanciado]
+      caption: [Problema VRP (Con Parcel) Instanciado [9]]
     ),
 
     // Tercer dibujo (TDPDP)
@@ -95,7 +95,7 @@
         line("3","4")
         line("4","0")
       }),
-      caption: [Problema TDPDP]
+      caption: [Problema TDPDP [9]]
     )
   )
 )
@@ -104,7 +104,7 @@
 
 #align(horizon,
 [
-El modelo nace de las instancias, en donde se encuentran los siguientes elementos:
+El modelo nace de las instancias, en donde se encuentran los siguientes elementos: [3]
 - $"c"$: Cantidad de clientes
 - $"SL"$: Tiempo que tarda en lanzarse un dron
 - $"SR"$: Tiempo que tarda en recuperarse un dron
@@ -115,11 +115,11 @@ Se incluyen los siguientes datos:
 - $"Cdrones"$: Conjunto de clientes que pueden recibir pedidos por dron
 - $tau_(t)$: Matriz que indica tiempo de viaje (camión) de $i$ a $j$
 - $tau_(d)$: Matriz que indica tiempo de viaje (dron) de $i$ a $j$
-- $"F"$: Conjunto de viajes validos para el dron ${i,j,k}$
+- $"F"$: Conjunto de viajes validos para el dron ${i,j,k}$ [1]
 
 #pagebreak()
 
-Se tienen las restricciones:
+Se tienen las restricciones: [2] [3]
 - Se deben realizar la entrega a todos los clientes
 - Un dron debe ser enviado en una posición $i$, ir a $j$ y encontrarse con el camión en $k$
 - Los viajes de dron deben de pertener a $"F"$. Si pertenece a $"F"$, indirectamente cumple al condición de que se entrege a $"Cdrones"$.
