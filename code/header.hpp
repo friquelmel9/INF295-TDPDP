@@ -19,6 +19,11 @@ const bool CALCULATED = 1;
 // Constantes para dron
 const int NO_DRON_CLIENTS = -1; // Usar para indicar que no hay más entregas de dron con las que revisar el tiempo máximo de recuperación
 
+// Constantes para mutación
+const int MUT_TWOOPT = 1;
+const int MUT_SWAP = 2;
+const int MUT_SCRAMBLE = 3;
+
 /* Struct de camino del dron (Definición F)
  * */
 struct DronFlight {
@@ -88,7 +93,7 @@ struct Individual {
 
 Time fitness(const Individual indv, const TDPDP tdpdp); // Función que evalua el individuo del TDPDP
 Individual crossing(const Individual father1, const Individual father2, const TDPDP tdpdp); // Genera un hijo de dos padres
-Individual mutation(Individual &indv, const TDPDP tdpdp); // Genera una mutuación dentro del individuo original
+Individual mutation(Individual &indv, const TDPDP tdpdp, const int type); // Genera una mutuación dentro del individuo original
 void repair(Individual &indv, const TDPDP tdpdp); // Repara algún individuo
 std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int &n); // Genera la población inicial
 

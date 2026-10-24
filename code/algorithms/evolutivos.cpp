@@ -183,12 +183,53 @@ Individual crossing(const Individual father1, const Individual father2, const TD
  * Parámetros:
  * - indv (Individual): Instancia del problema tdpdp
  * - tdpdp (TDPDP): Datos del problema tdpdp asociado a las instancias
+ * - type (int): Tipo de mutación a aplicar (MUT_TWOOPT, MUT_SWAP, MUT_SCRAMBLE)
  *
  * Retorno
  * - Retorna una nueva instancia del problema con una mutuación respecto al individuo original (indv)
  * */
-Individual mutation(Individual &indv, const TDPDP tdpdp){
-	return indv;
+Individual mutation(Individual &indv, const TDPDP tdpdp, const int type){
+	(void)tdpdp;
+	Individual mutated;
+	mutated.tsp_seq = indv.tsp_seq;
+
+	const int n = static_cast<int>(mutated.tsp_seq.size());
+	if (n < 2) {
+		return mutated;
+	}
+
+	std::uniform_int_distribution<int> dist(0, n - 1);
+
+	if (type == MUT_TWOOPT) {
+		int i = dist(rng);
+		int j = dist(rng);
+		while (i == j) {
+			j = dist(rng);
+		}
+		if (i > j) {
+			std::swap(i, j);
+		}
+		std::reverse(mutated.tsp_seq.begin() + i, mutated.tsp_seq.begin() + j + 1);
+	} else if (type == MUT_SWAP) {
+		int i = dist(rng);
+		int j = dist(rng);
+		while (i == j) {
+			j = dist(rng);
+		}
+		std::swap(mutated.tsp_seq[i], mutated.tsp_seq[j]);
+	} else if (type == MUT_SCRAMBLE) {
+		int i = dist(rng);
+		int j = dist(rng);
+		while (i == j) {
+			j = dist(rng);
+		}
+		if (i > j) {
+			std::swap(i, j);
+		}
+		std::shuffle(mutated.tsp_seq.begin() + i, mutated.tsp_seq.begin() + j + 1, rng);
+	}
+
+	return mutated;
 }
 
 /* Función que realiza la reparación de algún individuo
