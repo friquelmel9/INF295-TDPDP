@@ -160,7 +160,7 @@ std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n); // G
  * */
 
 void dpDrones(Individual &indv, const TDPDP tdpdp); // Genera mediante un dp la asignación de los drones 
-void greedyDrones(Individual &ind, const TDPDP tdpdp); // Genera mediante un greedy la asignación de los drones						
+void greedyDrones(Individual &indv, const TDPDP tdpdp); // Genera mediante un greedy la asignación de los drones						
 
 /* Utilidades 
  * */
