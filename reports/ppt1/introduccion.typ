@@ -1,6 +1,6 @@
 #import "@preview/cetz:0.5.3"
 
-== Definición TDPDP
+== Contexto TDPDP
 
 #align(center + horizon,
   figure(
