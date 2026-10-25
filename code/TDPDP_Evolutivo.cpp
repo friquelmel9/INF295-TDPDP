@@ -26,11 +26,9 @@ void test(){
 	std::vector<Individual> population = generatePopulation(tdpdp, 1);
 	population[0].print();
 
-	// TEST 3: Evaluación de una solución inicial
+	// TEST 3: Realizar greedy
 	std::cout << "================= TEST 3 ======================" << std::endl;
-
-	population[0].fit = fitness(population[0], tdpdp);
-	population[0].is_calculated = true;
+	greedyDrones(population[0], tdpdp);
 	population[0].print();
 }
 

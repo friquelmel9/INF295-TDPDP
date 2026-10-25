@@ -67,10 +67,34 @@ struct TDPDP {
 		std::cout << "SL (Time Setup Launch): " << SL << std::endl;
 		std::cout << "SR (Time Setup Recover): " << SR << std::endl;
 		std::cout << "E (Endurance): " << E << std::endl;
+		std::cout << "----------------------------------------------" << std::endl;
 		std::cout << "                   Cdrones                    " << std::endl;
 		for (Client client_cd : Cdrones){std::cout << client_cd << " ";}
 		std::cout << std::endl;
+		std::cout << "----------------------------------------------" << std::endl;
+		std::cout << "                   tauDrone                   " << std::endl;
+		for (const auto &row : tauDrone) {
+			for (Time val : row) {
+				std::cout << val << " ";
+			}
+			std::cout << std::endl;
 		}
+		std::cout << "----------------------------------------------" << std::endl;
+		std::cout << "                   tauTruck                   " << std::endl;
+		for (const auto &row : tauTruck) {
+			for (Time val : row) {
+				std::cout << val << " ";
+			}
+			std::cout << std::endl;
+		}
+		std::cout << "----------------------------------------------" << std::endl;
+		std::cout << "                      F                       " << std::endl;
+		for (const DronFlight &flight : F) {
+			std::cout << "{" << flight.i << "," << flight.j << "," << flight.k << "} ";
+		}
+		std::cout << std::endl;
+		std::cout << "==============================================" << std::endl;
+	}
 };
 
 
@@ -136,7 +160,7 @@ std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n); // G
  * */
 
 void dpDrones(Individual &indv, const TDPDP tdpdp); // Genera mediante un dp la asignación de los drones 
-void greedyDrones(Individual &ind, const TDPDP tdpdp); // Genera mediante un greedy la asignación de los drones						
+void greedyDrones(Individual &indv, const TDPDP tdpdp); // Genera mediante un greedy la asignación de los drones						
 
 /* Utilidades 
  * */
