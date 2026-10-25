@@ -23,4 +23,8 @@ Se debe de trabajar en las siguientes secciones:
 - Guardar y analizar resultados
 ])
 
+== 
 
+#align(horizon + center,
+[*Muchas gracias!*]
+)

@@ -8,7 +8,7 @@
 #show: slides.with(
   title: "TDPDP: Pickup and Delivery Problem with Drone",
   subtitle: "Algoritmo Evolutivo Híbrido: Enfoque Truck-First, Drone-Second",
-  date: "Octubre 2024",
+  date: "24 - Octubre - 2026",
   authors: ("Facundo Riquelme"),
   layout: "medium",
   ratio: 16/9,
