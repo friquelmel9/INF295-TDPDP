@@ -39,7 +39,7 @@ void read_file(std::string filepath, TDPDP &inst){
 
 #align(horizon,
 [
-Los testcases fueron entregados en `Instancias.zip`. Contienen la información mencionada en el struct de TSPSP.
+Los testcases fueron entregados en `Instancias.zip`. Contienen la información mencionada en el struct de TDPDP.
 
 Estos contienen los datos descritos en el modelo (c, SL, SR, E, F, $tau_T$, $tau_D$, Cdrones)
 
@@ -56,15 +56,15 @@ Se leen mediante la función `read_file()`
 
 == Estructura Main
 
-La estructura del archivo esta en el main, archivo `TDPDP_Evolutivo.cpp`. Realizara los siguientes pasos:
+La estructura del archivo está en el main, archivo `TDPDP_Evolutivo.cpp`. Realizará los siguientes pasos:
 
 + Lee todos los archivos dentro de `data/instancias`
 + Por cada instancia, recibe los datos mediante `read_file()`
 + Se realiza el algoritmo evolutivo.
 
-La implementación concreta del evolutivo esta en desarrollo. Se esta buscando encontrar...
+La implementación concreta del evolutivo está en desarrollo. Se está buscando encontrar...
 - Tamaños recomendados para $n$ (Cantidad de individuos en la población)
 - Porcentajes para la `mutation`, `crossing`, y elitismo
-- Revisión del `dpDrones` y `greedyDrones`, para saber cual realiza mejor mejora y con cuanto tiempo de diferencia.
+- Revisión del `dpDrones` y `greedyDrones`, para saber cuál realiza mejor mejora y con cuánto tiempo de diferencia.
 
 

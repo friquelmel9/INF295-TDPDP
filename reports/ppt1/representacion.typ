@@ -4,7 +4,7 @@
 
 #show raw.where(block: true): set text(size: 7pt)
 
-== Representación Grafica
+== Representación Gráfica
 
 #align(center + horizon,
   grid(
@@ -115,17 +115,17 @@ Se incluyen los siguientes datos:
 - $"Cdrones"$: Conjunto de clientes que pueden recibir pedidos por dron
 - $tau_(t)$: Matriz que indica tiempo de viaje (camión) de $i$ a $j$
 - $tau_(d)$: Matriz que indica tiempo de viaje (dron) de $i$ a $j$
-- $"F"$: Conjunto de viajes validos para el dron ${i,j,k}$ [1]
+- $"F"$: Conjunto de viajes válidos para el dron ${i,j,k}$ [1]
 
 #pagebreak()
 
 Se tienen las restricciones: [2] [3]
-- Se deben realizar la entrega a todos los clientes
+- Se debe realizar la entrega a todos los clientes
 - Un dron debe ser enviado en una posición $i$, ir a $j$ y encontrarse con el camión en $k$
-- Los viajes de dron deben de pertener a $"F"$. Si pertenece a $"F"$, indirectamente cumple al condición de que se entrege a $"Cdrones"$.
-- Condiciones fisicas (un camión solo puede ir de $i$ a $j$, no a varios clientes a la vez, el viaje del dron debe de soportar la distancia máxima de su resistencia $"E"$)
+- Los viajes de dron deben de pertenecer a $"F"$. Si pertenece a $"F"$, indirectamente cumple la condición de que se entregue a $"Cdrones"$.
+- Condiciones físicas (un camión solo puede ir de $i$ a $j$, no a varios clientes a la vez, el viaje del dron debe de soportar la distancia máxima de su resistencia $"E"$)
 
-La función objetivo es minimzar el tiempo máximo donde el dron y el camión vuelven al deposito inicial.
+La función objetivo es minimizar el tiempo máximo donde el dron y el camión vuelven al depósito inicial.
 ]
 )
 

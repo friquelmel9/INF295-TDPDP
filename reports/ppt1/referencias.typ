@@ -20,9 +20,9 @@
 
 #align(horizon,
 [
-Se utilizo las siguientes IA: Gemini + NotebookLM
-- NotebookLM se utilizo para referenciar las fuentes
-- Gemini se utilizo en apoyo del codigo (Bugfixes y tipado)
+Se utilizaron las siguientes IA: Gemini + NotebookLM
+- NotebookLM se utilizó para referenciar las fuentes
+- Gemini se utilizó en apoyo del código (Bugfixes y tipado)
 ])
 
 == Anexo

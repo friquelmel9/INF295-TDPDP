@@ -5,7 +5,7 @@
 == Individuo (TruckFirst, DroneSecond)
 
 + Representación Camión ( _TSP_ ): Encargada de la sección de TSP, nodos y viajes.
-+ Representacion Drone ( _TDPDP_ ): Encarga de la sección especifica de TDPDP, restricciones de dron.
++ Representación Drone ( _TDPDP_ ): Encargada de la sección específica de TDPDP, restricciones de dron.
 
 #align(center + horizon,
   figure(
@@ -116,7 +116,7 @@ for (Client next_node : truck_stops) {
 [
 La evaluación corresponde al tiempo máximo. El algoritmo considera: [1][2]
 - Tiempo del camión de ir un nodo a otro
-- En caso de que se lanze un dron, se incluye el tiempo de lanzamiento ($"SL"$)
+- En caso de que se lance un dron, se incluye el tiempo de lanzamiento ($"SL"$)
 - En caso de que se reciba un dron, toma el máximo entre el tiempo de llegada del dron y el tiempo de llegada del camión. Luego le suma el tiempo de recuperación del dron ($"SR"$)
 ]
 )
@@ -238,13 +238,13 @@ std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n){
   )
 )
 
-== Mutuación (2-opt, Swap, Scramble)
+== Mutación (2-opt, Swap, Scramble)
 
 #align(horizon,
 [
-- Swap (Intercambio): Selecciona aleatoriamente dos posiciones $i$ y $j$ en la permutación e intercambia las posiciones de los dos clientes .
-- Inversion (2-opt): Selecciona dos puntos de corte aleatorios e invierte el orden del bloque de clientes comprendido entre ellos (por ejemplo, $[1, 2, {3, 4, 5}, 6] -> [1, 2, {5, 4, 3}, 6]$). 
-- Scramble. Tomar dos puntos $i$ y $j$, dejando $i$ al inicio de su ruta y a $j$ al final. Todas las ciudades entremedio son randomizadas.
+- Swap (Intercambio): Selecciona aleatoriamente dos posiciones $i$ y $j$ en la permutación e intercambia las posiciones de los dos clientes.
+- Inversión (2-opt): Selecciona dos puntos de corte aleatorios e invierte el orden del bloque de clientes comprendido entre ellos (por ejemplo, $[1, 2, {3, 4, 5}, 6] -> [1, 2, {5, 4, 3}, 6]$). 
+- Scramble: Tomar dos puntos $i$ y $j$, dejando $i$ al inicio de su ruta y a $j$ al final. Todas las ciudades entremedio son randomizadas.
 ])
 
 #pagebreak()
@@ -317,7 +317,7 @@ La asignación del vuelo puede ser programada mediante dos algoritmos:
 
 Greedy se encuentra implementado en `greedyDrones`, mientras que DP se encuentra en desarrollo (`dpDrone`)
 
-El siguiente codigo tiene firma `greedyDrones(Individual &indv, const TDPDP tdpdp)`
+El siguiente código tiene firma `greedyDrones(Individual &indv, const TDPDP tdpdp)`
 ]
 )
 
@@ -405,7 +405,7 @@ for (int idx_i = 0; idx_i < cand_route_len - 1; ++idx_i) {
       pairs,
       criterio
     ),
-    caption: [Algoritmo de Asignación Greedy)]
+    caption: [Algoritmo de Asignación Greedy]
   )
 )
 
