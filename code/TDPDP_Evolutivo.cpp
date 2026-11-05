@@ -10,7 +10,6 @@
  * Función de testing
  * */
 void test(){
-	// TEST 1: Lectura de un archivo
 	std::cout << "================= TEST 1 ======================" << std::endl;
 
 
@@ -19,14 +18,12 @@ void test(){
 	read_file(filepath, tdpdp);
 	tdpdp.print();
 
-	// TEST 2: Solución inicial generada de manera aleatoria
 	std::cout << "================= TEST 2 ======================" << std::endl;
 
 	int n=1;
 	std::vector<Individual> population = generatePopulation(tdpdp, 1);
 	population[0].print();
 
-	// TEST 3: Realizar greedy
 	std::cout << "================= TEST 3 ======================" << std::endl;
 	greedyDrones(population[0], tdpdp);
 	population[0].print();
@@ -42,9 +39,7 @@ void processData(const std::string dirpath){
 		return;
 	}
 
-	// Iterate through the folder contents one by one
 	for (const auto& entry : fs::directory_iterator(dirpath)) {
-		// entry.path() returns a fs::path object
 		if (fs::is_regular_file(entry.status())) {
 			std::cout << "Processing file: " << entry.path() << '\n';
 
