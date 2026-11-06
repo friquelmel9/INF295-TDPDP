@@ -19,8 +19,19 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
 	}
 
 	// Secuencia de clientes visitados por el camión (excluyendo depósitos)
-	const std::vector<Client>& truck_stops = !indv.truck_seq.empty() ? indv.truck_seq : indv.tsp_seq;
+	std::vector<Client> truck_stops;
+	if (!indv.seq.empty()) {
+		truck_stops.reserve(indv.tsp_seq.size());
+		for (size_t p = 0; p < indv.tsp_seq.size(); ++p) {
+			if (indv.seq[p] == TRUCK_DELIVERY) {
+				truck_stops.push_back(indv.tsp_seq[p]);
+			}
+		}
+	}
+	const std::vector<Client>& actual_truck_stops = !indv.seq.empty() ? truck_stops : indv.tsp_seq;
 
+	// Calculo del tiempo en
+	
 	Time current_time = 0.0;
 	Client current_node = start_depot;
 
@@ -39,7 +50,7 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
 	}
 
 	// 2. Paradas intermedias del camión
-	for (Client next_node : truck_stops) {
+	for (Client next_node : actual_truck_stops) {
 		// Tiempo del camión para trasladarse al siguiente cliente
 		current_time += tdpdp.tauTruck[current_node][next_node];
 		current_node = next_node;

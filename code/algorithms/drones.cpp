@@ -18,7 +18,7 @@ void dpDrones(Individual &indv, const TDPDP tdpdp){
  * - tdpdp (TDPDP): Datos del problema tdpdp
  *
  * Retorno:
- * - No realiza un retorno, pero guarda el viaje optimo en indv.truck_seq, indv.dron_seq y indv.dron_launch.
+ * - No realiza un retorno, pero guarda el viaje optimo en indv.seq, indv.dron_seq y indv.dron_launch.
  * */
 void greedyDrones(Individual &indv, const TDPDP tdpdp){
     if (indv.tsp_seq.empty()) {
@@ -26,7 +26,7 @@ void greedyDrones(Individual &indv, const TDPDP tdpdp){
     }
 
     // Inicialización del camión y dron a partir de tsp_seq
-    indv.truck_seq = indv.tsp_seq;
+    indv.seq.assign(indv.tsp_seq.size(), TRUCK_DELIVERY);
     indv.dron_seq.clear();
     indv.dron_launch.clear();
 
@@ -43,10 +43,12 @@ void greedyDrones(Individual &indv, const TDPDP tdpdp){
 
         // Construir la ruta completa del camión actual incluyendo depósitos: 0, ..., c+1
         std::vector<Client> full_route;
-        full_route.reserve(indv.truck_seq.size() + 2);
+        full_route.reserve(indv.tsp_seq.size() + 2);
         full_route.push_back(start_depot);
-        for (Client c : indv.truck_seq) {
-            full_route.push_back(c);
+        for (size_t p = 0; p < indv.tsp_seq.size(); ++p) {
+            if (indv.seq[p] == TRUCK_DELIVERY) {
+                full_route.push_back(indv.tsp_seq[p]);
+            }
         }
         full_route.push_back(end_depot);
 
@@ -71,30 +73,30 @@ void greedyDrones(Individual &indv, const TDPDP tdpdp){
         }
 
         // Paso 1: Evaluar cada cliente j elegible para dron visitado por el camión
-        for (size_t j_idx = 0; j_idx < indv.truck_seq.size(); ++j_idx) {
-            Client j = indv.truck_seq[j_idx];
+        for (size_t j_idx = 0; j_idx < indv.tsp_seq.size(); ++j_idx) {
+            if (indv.seq[j_idx] != TRUCK_DELIVERY) {
+                continue;
+            }
+            Client j = indv.tsp_seq[j_idx];
 
             // Comprobar que j sea elegible para ser atendido por el dron
             if (tdpdp.Cdrones.find(j) == tdpdp.Cdrones.end()) {
                 continue;
             }
 
-            // Generar ruta de camión tentativa sin el cliente j
-            std::vector<Client> cand_truck_seq;
-            cand_truck_seq.reserve(indv.truck_seq.size() - 1);
-            for (size_t p = 0; p < indv.truck_seq.size(); ++p) {
-                if (p != j_idx) {
-                    cand_truck_seq.push_back(indv.truck_seq[p]);
-                }
+            // Un nodo que ya actúa como punto de despegue o recuperación no puede ser atendido por dron
+            if (used_launch.find(j) != used_launch.end() || used_recovery.find(j) != used_recovery.end()) {
+                continue;
             }
 
+            // Generar ruta de camión tentativa sin el cliente j
             std::vector<Client> cand_full_route;
-            cand_full_route.reserve(cand_truck_seq.size() + 2);
-            cand_full_route.push_back(start_depot);
-            for (Client c : cand_truck_seq) {
-                cand_full_route.push_back(c);
+            cand_full_route.reserve(full_route.size() - 1);
+            for (Client c : full_route) {
+                if (c != j) {
+                    cand_full_route.push_back(c);
+                }
             }
-            cand_full_route.push_back(end_depot);
 
             std::unordered_map<Client, int> cand_node_pos;
             for (size_t p = 0; p < cand_full_route.size(); ++p) {
@@ -111,7 +113,8 @@ void greedyDrones(Individual &indv, const TDPDP tdpdp){
 
             Individual cand_ind;
             cand_ind.tsp_seq = indv.tsp_seq;
-            cand_ind.truck_seq = cand_truck_seq;
+            cand_ind.seq = indv.seq;
+            cand_ind.seq[j_idx] = DRON_DELIVERY;
 
             // Paso 2: Explorar todos los pares de despegue i y reencuentro k (donde i precede a k)
             for (int idx_i = 0; idx_i < cand_route_len - 1; ++idx_i) {

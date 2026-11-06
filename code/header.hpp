@@ -102,8 +102,8 @@ struct TDPDP {
  * */
 struct Individual {
 	std::vector<Client> tsp_seq; // Secuencia de clientes del TSP del camión. Incluye todos los caminos, exceptuando el depot 0 y c+1, es decir, se asumen que ocurren pero no se encuentran insertos dentro de la secuencia.
-	
-	std::vector<Client> truck_seq; // Secuencia de clientes del TDPDP (tras usar greedyDrones o dpDrones). Incluye todos los caminos realizados por el camión, exceptuando el depot 0 y c+1, es decir, asumen que ocurren pero no se encuentran insertos dentro del vector.
+
+	std::vector<bool> seq; // Secuencia de clientes del TDPDP. Utiliza las constantes TRUCK_DELIVERY o DRON_DELIVERY para indicar que tipo de entrega es.
 	std::vector<DronFlight> dron_seq; // Secuencia de vuelos del TDPDP. Utilizado para revisar
 	std::set<Client> dron_launch; // Set auxiliar en donde estan aquellos clientes desde donde el camión lanza el dron. Sirve par amantener un calculo mejor de las rutas.
 	
@@ -123,9 +123,9 @@ struct Individual {
 		}
 		std::cout << std::endl;
 
-		std::cout << "truck_seq: ";
-		for (Client c : truck_seq) {
-			std::cout << c << " ";
+		std::cout << "seq: ";
+		for (bool b : seq) {
+			std::cout << b << " ";
 		}
 		std::cout << std::endl;
 
