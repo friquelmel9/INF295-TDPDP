@@ -4,6 +4,11 @@
 // Librerias
 #include <stdio.h>
 
+// Función para números aleatorios
+inline std::mt19937& get_rng() {static std::mt19937 rng(std::random_device{}());return rng;}
+
+inline void seed_rng(unsigned int seed_value) {get_rng().seed(seed_value);}
+
 // Definición de nombres
 using Client = int;
 using Time = double;

@@ -93,11 +93,6 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
 	return current_time;
 }
 
-// Generador de números aleatorios para operadores evolutivos
-namespace {
-	std::mt19937 rng(std::random_device{}());
-}
-
 /* Función que realiza el cruzamiento (crossing) de dos padres
  * El cruzamiento considera unicamente los caminos (TSPSP). Luego, los drones se asignan usando las función de dpDrones o greedyDrones.
  *
@@ -124,8 +119,8 @@ Individual crossing(const Individual father1, const Individual father2, const TD
 
 	// Selección de puntos de corte para la subsecuencia continua del Padre 1
 	std::uniform_int_distribution<int> dist(0, n - 1);
-	int cut1 = dist(rng);
-	int cut2 = dist(rng);
+	int cut1 = dist(get_rng());
+	int cut2 = dist(get_rng());
 	if (cut1 > cut2) {
 		std::swap(cut1, cut2);
 	}
@@ -133,14 +128,14 @@ Individual crossing(const Individual father1, const Individual father2, const TD
 	// Asegurar que la subsecuencia no abarque toda la secuencia si n > 1 para permitir aporte del Padre 2
 	if (n > 2) {
 		while (cut1 == cut2 || (cut1 == 0 && cut2 == n - 1)) {
-			cut1 = dist(rng);
-			cut2 = dist(rng);
+			cut1 = dist(get_rng());
+			cut2 = dist(get_rng());
 			if (cut1 > cut2) {
 				std::swap(cut1, cut2);
 			}
 		}
 	} else if (n == 2) {
-		cut1 = dist(rng);
+		cut1 = dist(get_rng());
 		cut2 = cut1;
 	}
 
@@ -211,32 +206,32 @@ Individual mutation(Individual &indv, const TDPDP tdpdp, const int type){
 	std::uniform_int_distribution<int> dist(0, n - 1);
 
 	if (type == MUT_TWOOPT) {
-		int i = dist(rng);
-		int j = dist(rng);
+		int i = dist(get_rng());
+		int j = dist(get_rng());
 		while (i == j) {
-			j = dist(rng);
+			j = dist(get_rng());
 		}
 		if (i > j) {
 			std::swap(i, j);
 		}
 		std::reverse(mutated.tsp_seq.begin() + i, mutated.tsp_seq.begin() + j + 1);
 	} else if (type == MUT_SWAP) {
-		int i = dist(rng);
-		int j = dist(rng);
+		int i = dist(get_rng());
+		int j = dist(get_rng());
 		while (i == j) {
-			j = dist(rng);
+			j = dist(get_rng());
 		}
 		std::swap(mutated.tsp_seq[i], mutated.tsp_seq[j]);
 	} else if (type == MUT_SCRAMBLE) {
-		int i = dist(rng);
-		int j = dist(rng);
+		int i = dist(get_rng());
+		int j = dist(get_rng());
 		while (i == j) {
-			j = dist(rng);
+			j = dist(get_rng());
 		}
 		if (i > j) {
 			std::swap(i, j);
 		}
-		std::shuffle(mutated.tsp_seq.begin() + i, mutated.tsp_seq.begin() + j + 1, rng);
+		std::shuffle(mutated.tsp_seq.begin() + i, mutated.tsp_seq.begin() + j + 1, get_rng());
 	}
 
 	return mutated;
@@ -268,7 +263,7 @@ std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n){
 
 	for(int j=0; j<n; ++j){
 		std::vector<Client> tour = base_tour;
-		std::shuffle(tour.begin(), tour.end(), rng);
+		std::shuffle(tour.begin(), tour.end(), get_rng());
 		Individual ind;
 		ind.tsp_seq = tour;
 		population.push_back(ind);
