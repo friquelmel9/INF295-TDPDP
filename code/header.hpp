@@ -149,23 +149,6 @@ struct Individual {
 	}
 };
 
-/* Struct que representa una población del problema
- * */
-struct Population {
-
-	std::vector<Individual> current_gen;
-	std::vector<Individual> next_gen;
-
-	ll i = 0;
-
-	Individual* best_indv;
-
-	void advance_gen(); // Realiza el cambio de la siguiente generación
-	void fitness(); // Realiza la evaluación de todos los individuos dentro de la población
-	
-
-};
-
 /* Conjunto de declaración de funciones para la implementación evolutiva
  * */
 
