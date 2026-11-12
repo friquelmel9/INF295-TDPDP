@@ -65,10 +65,7 @@ struct TDPDP {
 			return;
 		}
 		std::cout << "==============================================" << std::endl;
-		std::cout << "                   TDPDP                      " << std::endl;
-		std::cout << "==============================================" << std::endl;
-		std::cout << "                 Parámetros                   " << std::endl;
-		std::cout << "c (#Clients): " << c << std::endl;
+		std::cout << "                   TDPDP                      " << std::endl; std::cout << "==============================================" << std::endl; std::cout << "                 Parámetros                   " << std::endl; std::cout << "c (#Clients): " << c << std::endl;
 		std::cout << "SL (Time Setup Launch): " << SL << std::endl;
 		std::cout << "SR (Time Setup Recover): " << SR << std::endl;
 		std::cout << "E (Endurance): " << E << std::endl;
@@ -106,15 +103,15 @@ struct TDPDP {
 /* Struct que representa una solución del problema TDPDP (Algoritmo Evolutivo)
  * */
 struct Individual {
-	std::vector<Client> tsp_seq; // Secuencia de clientes del TSP del camión. Incluye todos los caminos, exceptuando el depot 0 y c+1, es decir, se asumen que ocurren pero no se encuentran insertos dentro de la secuencia.
 
+	// Variables
+	std::vector<Client> tsp_seq; // Secuencia de clientes del TSP del camión. Incluye todos los caminos, exceptuando el depot 0 y c+1, es decir, se asumen que ocurren pero no se encuentran insertos dentro de la secuencia.
 	std::vector<bool> seq; // Secuencia de clientes del TDPDP. Utiliza las constantes TRUCK_DELIVERY o DRON_DELIVERY para indicar que tipo de entrega es.
 	std::vector<DronFlight> dron_seq; // Secuencia de vuelos del TDPDP. Utilizado para revisar
 	std::set<Client> dron_launch; // Set auxiliar en donde estan aquellos clientes desde donde el camión lanza el dron. Sirve par amantener un calculo mejor de las rutas.
-	
 	Time fit = 0; // Valor de evaluación a la secuencia actual
 	bool is_calculated = TO_CALC; // Indica si se ha hecho la evaluación del fitness()
-
+	
 	/*
 	 * Función auxiliar que imprime los datos del individuo
 	 * */
@@ -150,6 +147,23 @@ struct Individual {
 		}
 		std::cout << "==============================================" << std::endl;
 	}
+};
+
+/* Struct que representa una población del problema
+ * */
+struct Population {
+
+	std::vector<Individual> current_gen;
+	std::vector<Individual> next_gen;
+
+	ll i = 0;
+
+	Individual* best_indv;
+
+	void advance_gen(); // Realiza el cambio de la siguiente generación
+	void fitness(); // Realiza la evaluación de todos los individuos dentro de la población
+	
+
 };
 
 /* Conjunto de declaración de funciones para la implementación evolutiva
