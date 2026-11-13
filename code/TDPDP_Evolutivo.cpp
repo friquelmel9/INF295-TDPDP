@@ -21,7 +21,7 @@ namespace fs = std::filesystem;
  * - p_mut (double 0.0-1.0): Probabilidad de mutuación
  * - p_cro (double 0.0-1.0): Probabilidad de cruzamiento
  * */
-Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_cro){
+Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print){
 	
 	// Generar la población inicial y asignar drones greedy
 	std::vector<Individual> generation = generatePopulation(tdpdp, n);
@@ -50,6 +50,8 @@ Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_
 	std::vector<Individual> next_gen(n);
 
 	for(int curr_g = 0; curr_g < g; curr_g++){
+
+		if(print){std::cout << "[%] Generación: (}" << curr_g << "): Mejor evaluación actual = " << best_indv.fit << " [%] " << std::endl;}
 
 		// Identificar al mejor y peor individuo de la generación actual para la adaptación
 		int best_curr_idx = 0;
@@ -145,6 +147,8 @@ int main(int argc, char** argv){
 	Prob p_cro = 0.4;
 	std::string inst;
 	int seed=-1;
+	bool print=false;
+	bool result=false;
 
 	// Parámetrizados utilizados para usar paramILS
 	app.add_option("-n,--n",n,"Tamaño de la Población (n)");
@@ -153,6 +157,8 @@ int main(int argc, char** argv){
 	app.add_option("-c,--cro",p_cro,"Probabilidad de cruzamiento (p_cro)");
 	app.add_option("-i,--inst",inst,"Archivo con instancias a generar");
 	app.add_option("-s,--seed",seed,"Semilla a utilizar en la generación de números aleatorios");
+	app.add_flag("-p,--print",print,"Imprime el estado actual del algoritmo");
+	app.add_flag("-r,--result",result,"Imprime el resultado del algoritmo (para tunear usando ParamILS)");
 
 	CLI11_PARSE(app, argc, argv);
 
@@ -167,12 +173,19 @@ int main(int argc, char** argv){
 	TDPDP tdpdp;
 	read_file(inst, tdpdp);
 
+	if(print){std::cout << "[+] Aplicando Algoritmo Evolutivo a Instancia " << inst << " [+] " << std::endl;}
+
 	auto t_start = std::chrono::high_resolution_clock::now();
-	Individual best = evolutionaryTdpdp(tdpdp, n, g, p_mut, p_cro);
+	Individual best = evolutionaryTdpdp(tdpdp, n, g, p_mut, p_cro, print);
 	auto t_end = std::chrono::high_resolution_clock::now();
 	double runtime = std::chrono::duration<double>(t_end - t_start).count();
 
-	write_result("data/results/results.csv", n, g, p_mut, p_cro, runtime, best.fit);
+	if(print){std::cout << "[-] Algoritmo Evolutivo Finalizado [-]" << std::endl;}
+	if(print){std::cout << "[=] Resultado final: " << runtime << " [=]" << std::endl;}
+	if(result){std::cout << "Result for ParamILS: SAT, " << runtime << ", " << g << ", " << best.fit << ", " << seed << std::endl;}
+
+	std::string results_file = fs::exists("data/results") ? "data/results/results.csv" : "code/data/results/results.csv";
+	write_result(results_file, n, g, p_mut, p_cro, runtime, best.fit);
 
 	return 0;
 }

@@ -1,7 +1,7 @@
 # Configuración de ParamILS
 
 ## Ubicación
-algo = rubny /wrapper.rb
+algo = bash code/libs/paramILS/wrapper.sh
 execdir = .
 
 ## Indica que el algoritmo es aleatorio
@@ -14,10 +14,10 @@ overall_obj = mean
 ## Tiempo extensión
 cutoff_time = 30
 cutoff_length = max
-tunerTimeout = max
+tunerTimeout = 3600
 
 ## Directorios
-paramfile = code/data/parameters/param.txt
+paramfile = code/data/parameters/params.txt
 outdir = code/data/output/paramILS
 instance_file = code/data/parameters/tuning_inst.txt
 test_instance_file = code/data/parameters/test_inst.txt
