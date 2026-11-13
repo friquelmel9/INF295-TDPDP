@@ -51,3 +51,46 @@ void read_file(std::string filepath, TDPDP &inst){
 	file.close();
 	inst.isInstance = true;
 }
+
+/*
+ * Función auxiliar para registrar resultados en archivo CSV/texto.
+ * Si el directorio no existe, lo crea automáticamente.
+ * Si el archivo no existe o está vacío, escribe la cabecera CSV.
+ * Escribe en modo append para registrar en la última línea.
+ *
+ * Parámetros:
+ * - filepath (string): Ruta del archivo
+ * - n (int): Tamaño de la población
+ * - g (int): Cantidad de generaciones
+ * - p_mut (Prob): Probabilidad de mutación
+ * - p_cro (Prob): Probabilidad de cruzamiento
+ * - runtime (double): Tiempo de ejecución en segundos
+ * - eval (Time): Evaluación/fitness del mejor individuo
+ */
+void write_result(std::string filepath, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval){
+	std::filesystem::path p(filepath);
+	if (p.has_parent_path()) {
+		std::filesystem::create_directories(p.parent_path());
+	}
+
+	std::ofstream file(filepath, std::ios::app);
+	if (!file.is_open()){
+		std::cerr << "Error: No se pudo abrir o crear el archivo en " << filepath << std::endl;
+		return;
+	}
+
+	// Si el archivo está vacío o recién creado, escribir encabezado
+	file.seekp(0, std::ios::end);
+	if (file.tellp() == 0) {
+		file << "n,g,p_mut,p_cro,runtime,eval\n";
+	}
+
+	file << n << ","
+	     << g << ","
+	     << p_mut << ","
+	     << p_cro << ","
+	     << runtime << ","
+	     << eval << "\n";
+
+	file.close();
+}

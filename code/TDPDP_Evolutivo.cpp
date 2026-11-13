@@ -164,6 +164,15 @@ int main(int argc, char** argv){
 	if(seed>=0){seed_rng(static_cast<unsigned int>(seed));}
 
 	// Evaluación del algoritmo
+	TDPDP tdpdp;
+	read_file(inst, tdpdp);
+
+	auto t_start = std::chrono::high_resolution_clock::now();
+	Individual best = evolutionaryTdpdp(tdpdp, n, g, p_mut, p_cro);
+	auto t_end = std::chrono::high_resolution_clock::now();
+	double runtime = std::chrono::duration<double>(t_end - t_start).count();
+
+	write_result("data/results/results.csv", n, g, p_mut, p_cro, runtime, best.fit);
 
 	return 0;
 }

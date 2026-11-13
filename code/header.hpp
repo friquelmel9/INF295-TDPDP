@@ -169,5 +169,6 @@ void greedyDrones(Individual &indv, const TDPDP tdpdp); // Genera mediante un gr
  * */
 
 void read_file(std::string filepath, TDPDP &inst); // Lectura de un archivo instancia
+void write_result(std::string filepath, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval);
 
 #endif
