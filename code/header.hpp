@@ -12,6 +12,7 @@ inline void seed_rng(unsigned int seed_value) {get_rng().seed(seed_value);}
 // Definición de nombres
 using Client = int;
 using Time = double;
+using Prob = double;
 
 // Constantes para camión
 const bool TRUCK_DELIVERY = 1;

@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include "header.hpp"
+#include "libs/CLI11.hpp"
 
 // Archivos
 #include "algorithms/utils.cpp"
@@ -8,56 +9,8 @@
 
 Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_cro);
 
-/*
- * Función de testing
- * */
-void test(){
-	std::cout << "================= TEST 1 ======================" << std::endl;
-
-
-	std::string filepath = "data/instancias/Instance_010.1_new.txt";
-	TDPDP tdpdp; 
-	read_file(filepath, tdpdp);
-	tdpdp.print();
-
-	std::cout << "================= TEST 2 ======================" << std::endl;
-
-	int n=1;
-	std::vector<Individual> population = generatePopulation(tdpdp, n);
-	population[0].print();
-
-	std::cout << "================= TEST 3 ======================" << std::endl;
-	greedyDrones(population[0], tdpdp);
-	population[0].print();
-
-	std::cout << "================= TEST 4 ======================" << std::endl;
-	Individual evo_best = evolutionaryTdpdp(tdpdp, 10, 5, 0.2, 0.7);
-	std::cout << "Evolucion completada:" << std::endl;
-	evo_best.print();
-}
 
 namespace fs = std::filesystem;
-
-/* Función que procesa los datos de problemas TDPDP
- * */
-void processData(const std::string dirpath){
-	if (!fs::exists(dirpath) || !fs::is_directory(dirpath)) {
-		std::cerr << "Error: Invalid directory path.\n";
-		return;
-	}
-
-	for (const auto& entry : fs::directory_iterator(dirpath)) {
-		if (fs::is_regular_file(entry.status())) {
-			std::cout << "Processing file: " << entry.path() << '\n';
-
-			std::string filepath = entry.path().string();
-			
-			// Llamada de los datos
-			TDPDP instTdpdp;
-			read_file(filepath, instTdpdp);
-		} 
-	}
-}
 
 /* Función principal que obtiene una solución para el problema de TDPDP usando un algoritmo evolutivo.
  *
@@ -84,7 +37,6 @@ Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_
 	std::uniform_real_distribution<double> dist(0.0, 1.0); // Distribución de probabilidad [0.0, 1.0)
 	std::uniform_int_distribution<int> dist_parent(0, n - 1); // Muestreo uniforme de candidatos para torneo
 	const int mut_types[] = {MUT_TWOOPT, MUT_SWAP, MUT_SCRAMBLE}; // Tipos de mutación disponibles
-	std::discrete_distribution<int> dist_mut_weighted({0.70, 0.20, 0.10}); // Probabilidades ponderadas para operadores de mutación: 70% 2-opt, 20% swap, 10% scramble
 
 	// Función auxiliar de selección por torneo binario (k=2) guiada por aptitud
 	auto select_parent = [&](const std::vector<Individual>& pop) -> int {
@@ -99,11 +51,15 @@ Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_
 
 	for(int curr_g = 0; curr_g < g; curr_g++){
 
-		// Identificar al mejor individuo de la generación actual
+		// Identificar al mejor y peor individuo de la generación actual para la adaptación
 		int best_curr_idx = 0;
+		int worst_curr_idx = 0;
 		for(int j = 1; j < n; ++j){
 			if(generation[j].fit < generation[best_curr_idx].fit){
 				best_curr_idx = j;
+			}
+			if(generation[j].fit > generation[worst_curr_idx].fit){
+				worst_curr_idx = j;
 			}
 		}
 
@@ -112,17 +68,38 @@ Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_
 			best_indv = generation[best_curr_idx];
 		}
 
+		// Rango de fitness para normalizar la cercanía del padre al óptimo actual
+		double min_fit = generation[best_curr_idx].fit;
+		double max_fit = generation[worst_curr_idx].fit;
+		double fit_range = max_fit - min_fit;
+
 		// Elitismo estricto: el mejor individuo pasa intacto a la siguiente generación
 		next_gen[0] = generation[best_curr_idx];
 
 		// Generar los restantes n - 1 individuos
 		int i = 1;
 		while(i < n){
-			double prob = dist(get_rng());
+			Prob prob = dist(get_rng());
 
-			if (prob < p_mut) { // MUTACIÓN (guiada por aptitud)
+			if (prob < p_mut) { // MUTACIÓN (adaptativa según cercanía al mejor individuo)
 				int parent_idx = select_parent(generation);
-				int mut_type = mut_types[dist_mut_weighted(get_rng())];
+
+				// Distancia relativa normalizada en [0.0, 1.0]: 0 = más cercano al mejor, 1 = más lejano
+				double alpha = 0.0;
+				if (fit_range > 1e-4) {
+					alpha = (generation[parent_idx].fit - min_fit) / fit_range;
+					alpha = std::clamp(alpha, 0.0, 1.0);
+				}
+
+				// Ponderación dinámica de operadores de mutación:
+				Prob w_twoopt = (1.0 - alpha) * 0.80 + 0.10;
+				Prob w_scramble = alpha * 0.60 + 0.05;
+				Prob w_swap = 1.0 - (w_twoopt + w_scramble);
+				if (w_swap < 0.05) w_swap = 0.05;
+
+				std::discrete_distribution<int> adaptive_mut({w_twoopt, w_swap, w_scramble});
+				int mut_type = mut_types[adaptive_mut(get_rng())];
+
 				next_gen[i] = mutation(generation[parent_idx], tdpdp, mut_type);
 				greedyDrones(next_gen[i], tdpdp);
 			} else if (prob < p_mut + p_cro) { // CRUZAMIENTO (guiado por aptitud)
@@ -148,14 +125,45 @@ Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_
 	}
 
 	// Revisar si algún individuo de la última generación supera al mejor histórico
-	for(const Individual& indv : generation){
-		if(indv.fit < best_indv.fit){best_indv = indv;}
+	for(const Individual& indv : generation){ 
+		if(indv.fit < best_indv.fit){
+			best_indv = indv;
+		}
 	}
 
 	return best_indv;
 }
 
-int main(){
-	test();
+int main(int argc, char** argv){
+
+	CLI::App app{"T"};
+	
+	// Valores comunes para las variables
+	int n=50;
+	int g=50;
+	Prob p_mut = 0.3;
+	Prob p_cro = 0.4;
+	std::string inst;
+	int seed=-1;
+
+	// Parámetrizados utilizados para usar paramILS
+	app.add_option("-n,--n",n,"Tamaño de la Población (n)");
+	app.add_option("-g,--g",g,"Cantidad de generaciones/iteraciones del evolutivo (g)");
+	app.add_option("-m,--mut",p_mut,"Probabilidad de mutación (p_mut)");
+	app.add_option("-c,--cro",p_cro,"Probabilidad de cruzamiento (p_cro)");
+	app.add_option("-i,--inst",inst,"Archivo con instancias a generar");
+	app.add_option("-s,--seed",seed,"Semilla a utilizar en la generación de números aleatorios");
+
+	CLI11_PARSE(app, argc, argv);
+
+	// Revisión de valores validos
+	while(p_mut+p_cro>=1.0){
+		p_mut-=0.05;
+		p_cro-=0.05;
+	}
+	if(seed>=0){seed_rng(static_cast<unsigned int>(seed));}
+
+	// Evaluación del algoritmo
+
 	return 0;
 }

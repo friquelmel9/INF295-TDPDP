@@ -1,0 +1,9 @@
+# Instancias de entrenamiento pequeñas
+code/data/instancias/Instance_010.1_new.txt
+code/data/instancias/Instance_010.2_new.txt
+code/data/instancias/Instance_010.3_new.txt
+
+# Instancias de entrenamiento medianas
+# code/data/instancias/Instance_050.1_new.txt
+# code/data/instancias/Instance_050.2_new.txt
+# code/data/instancias/Instance_050.3_new.txt
