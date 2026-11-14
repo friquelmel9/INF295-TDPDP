@@ -153,22 +153,22 @@ struct Individual {
 /* Conjunto de declaración de funciones para la implementación evolutiva
  * */
 
-Time fitness(const Individual indv, const TDPDP tdpdp); // Función que evalua el individuo del TDPDP
-Individual crossing(const Individual father1, const Individual father2, const TDPDP tdpdp); // Genera un hijo de dos padres
-Individual mutation(Individual &indv, const TDPDP tdpdp, const int type); // Genera una mutuación dentro del individuo original
-void repair(Individual &indv, const TDPDP tdpdp); // Repara algún individuo
-std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n); // Genera la población inicial
+Time fitness(const Individual &indv, const TDPDP &tdpdp); // Función que evalua el individuo del TDPDP
+Individual crossing(const Individual &father1, const Individual &father2, const TDPDP &tdpdp); // Genera un hijo de dos padres
+Individual mutation(const Individual &indv, const TDPDP &tdpdp, const int type); // Genera una mutuación dentro del individuo original
+void repair(Individual &indv, const TDPDP &tdpdp); // Repara algún individuo
+std::vector<Individual> generatePopulation(const TDPDP &tdpdp, const int n); // Genera la población inicial
 
 /* Conjunto de declaración de funciones para la obtención optima del dron.
  * */
 
-void dpDrones(Individual &indv, const TDPDP tdpdp); // Genera mediante un dp la asignación de los drones 
-void greedyDrones(Individual &indv, const TDPDP tdpdp); // Genera mediante un greedy la asignación de los drones						
+void dpDrones(Individual &indv, const TDPDP &tdpdp); // Genera mediante un dp la asignación de los drones 
+void greedyDrones(Individual &indv, const TDPDP &tdpdp); // Genera mediante un greedy la asignación de los drones						
 
 /* Utilidades 
  * */
 
-void read_file(std::string filepath, TDPDP &inst); // Lectura de un archivo instancia
-void write_result(std::string filepath, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval);
+void read_file(const std::string &filepath, TDPDP &inst); // Lectura de un archivo instancia
+void write_result(const std::string &filepath, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval);
 
 #endif

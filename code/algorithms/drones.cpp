@@ -8,7 +8,7 @@
  * - Guarda la asignación óptima de dron en indv.seq, indv.dron_seq y indv.dron_launch,
  *   y actualiza indv.fit e indv.is_calculated.
  * */
-void dpDrones(Individual &indv, const TDPDP tdpdp){
+void dpDrones(Individual &indv, const TDPDP &tdpdp){
 	if (indv.tsp_seq.empty()) {
 		return;
 	}
@@ -137,7 +137,7 @@ void dpDrones(Individual &indv, const TDPDP tdpdp){
  * Retorno:
  * - No realiza un retorno, pero guarda el viaje optimo en indv.seq, indv.dron_seq y indv.dron_launch.
  * */
-void greedyDrones(Individual &indv, const TDPDP tdpdp){
+void greedyDrones(Individual &indv, const TDPDP &tdpdp){
     if (indv.tsp_seq.empty()) {
         return;
     }

@@ -7,7 +7,7 @@
 #include "algorithms/evolutivos.cpp"
 #include "algorithms/drones.cpp"
 
-Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_cro);
+Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print = false);
 
 
 namespace fs = std::filesystem;
@@ -21,7 +21,7 @@ namespace fs = std::filesystem;
  * - p_mut (double 0.0-1.0): Probabilidad de mutuación
  * - p_cro (double 0.0-1.0): Probabilidad de cruzamiento
  * */
-Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print){
+Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print){
 	
 	// Generar la población inicial y asignar drones greedy
 	std::vector<Individual> generation = generatePopulation(tdpdp, n);

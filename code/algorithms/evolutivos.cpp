@@ -7,7 +7,7 @@
  * Retorno:
  * - Retorna la evaluación (Time) de la instancia. No modifica el valor guardado dentro de indv
  * */
-Time fitness(const Individual indv, const TDPDP tdpdp){
+Time fitness(const Individual &indv, const TDPDP &tdpdp){
 	
 	const Client start_depot = 0;
 	const Client end_depot = tdpdp.c + 1;
@@ -104,7 +104,7 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
  * Retorno
  * - Retorna una nueva instancia del problema con el cruzamiento de ambos padres. 
  * */
-Individual crossing(const Individual father1, const Individual father2, const TDPDP tdpdp){
+Individual crossing(const Individual &father1, const Individual &father2, const TDPDP &tdpdp){
 	Individual child;
 	const int n = static_cast<int>(father1.tsp_seq.size());
 
@@ -194,7 +194,7 @@ Individual crossing(const Individual father1, const Individual father2, const TD
  * Retorno
  * - Retorna una nueva instancia del problema con una mutuación respecto al individuo original (indv)
  * */
-Individual mutation(Individual &indv, const TDPDP tdpdp, const int type){
+Individual mutation(const Individual &indv, const TDPDP &tdpdp, const int type){
 	Individual mutated;
 	mutated.tsp_seq = indv.tsp_seq;
 
@@ -241,7 +241,7 @@ Individual mutation(Individual &indv, const TDPDP tdpdp, const int type){
  * La reparación unicamente considera el TSP 
  * NOTA: Probablemente esta función no tenga uso en el largo plazo, pero la dejare por si acaso.
  * */
-void repair(Individual &indv, const TDPDP tdpdp){
+void repair(Individual &indv, const TDPDP &tdpdp){
 
 }
 
@@ -254,7 +254,7 @@ void repair(Individual &indv, const TDPDP tdpdp){
  * Retorno:
  * - Retorna una población donde cada individuo viene con los datos del tsp_seq completados.
  * */
-std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n){
+std::vector<Individual> generatePopulation(const TDPDP &tdpdp, const int n){
 	std::vector<Individual> population;
 	population.reserve(n);
 

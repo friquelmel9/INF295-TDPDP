@@ -5,7 +5,7 @@
  * - filepath (string): Dirección de archivo
  * - inst (TDPDP): Instancia a asignar
  * */
-void read_file(std::string filepath, TDPDP &inst){
+void read_file(const std::string &filepath, TDPDP &inst){
 	inst.isInstance = false;
 	std::ifstream file(filepath);
 	if (!file.is_open()){ 
@@ -67,7 +67,7 @@ void read_file(std::string filepath, TDPDP &inst){
  * - runtime (double): Tiempo de ejecución en segundos
  * - eval (Time): Evaluación/fitness del mejor individuo
  */
-void write_result(std::string filepath, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval){
+void write_result(const std::string &filepath, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval){
 	std::filesystem::path p(filepath);
 	if (p.has_parent_path()) {
 		std::filesystem::create_directories(p.parent_path());
