@@ -25,7 +25,7 @@ Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_
 	
 	// Generar la población inicial y asignar drones greedy
 	std::vector<Individual> generation = generatePopulation(tdpdp, n);
-	for(Individual& indv : generation){greedyDrones(indv, tdpdp);}
+	for(Individual& indv : generation){dpDrones(indv, tdpdp);}
 
 	// Mejor individuo histórico
 	Individual best_indv = generation[0];
@@ -103,7 +103,7 @@ Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_
 				int mut_type = mut_types[adaptive_mut(get_rng())];
 
 				next_gen[i] = mutation(generation[parent_idx], tdpdp, mut_type);
-				greedyDrones(next_gen[i], tdpdp);
+				dpDrones(next_gen[i], tdpdp);
 			} else if (prob < p_mut + p_cro) { // CRUZAMIENTO (guiado por aptitud)
 				int p1 = select_parent(generation);
 				int p2 = select_parent(generation);
@@ -113,7 +113,7 @@ Individual evolutionaryTdpdp(TDPDP &tdpdp, int n, int g, double p_mut, double p_
 					}
 				}
 				next_gen[i] = crossing(generation[p1], generation[p2], tdpdp);
-				greedyDrones(next_gen[i], tdpdp);
+				dpDrones(next_gen[i], tdpdp);
 			} else { // Selección / Supervivencia por torneo
 				int selected_idx = select_parent(generation);
 				next_gen[i] = generation[selected_idx];
