@@ -1,3 +1,4 @@
-# Instancias de testing pequeñas
-code/data/instancias/Instance_010.4_new.txt
-code/data/instancias/Instance_010.5_new.txt
+data/instancias/Instance_010.4_new.txt
+data/instancias/Instance_010.5_new.txt
+data/instancias/Instance_050.4_nex.txt
+data/instancias/Instance_050.5_nex.txt

@@ -1,4 +1,9 @@
 # Carpetas del trabajo individual
 papers
-code/data/instancias
 AGENTS.md
+
+# Codigo
+code/data/output/paramILS
+code/data/instancias
+code/exec
+code/data/results

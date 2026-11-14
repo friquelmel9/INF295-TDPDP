@@ -1,23 +1,12 @@
-# Configuración de ParamILS
-
-## Ubicación
-algo = bash code/libs/paramILS/wrapper.sh
+algo = bash libs/paramILS/wrapper.sh
 execdir = .
-
-## Indica que el algoritmo es aleatorio
 deterministic = 0
 run_obj = qual
-
-## Se evalua mediante el promedio
 overall_obj = mean
-
-## Tiempo extensión
 cutoff_time = 30
 cutoff_length = max
 tunerTimeout = 3600
-
-## Directorios
-paramfile = code/data/parameters/params.txt
-outdir = code/data/output/paramILS
-instance_file = code/data/parameters/tuning_inst.txt
-test_instance_file = code/data/parameters/test_inst.txt
+paramfile = data/parameters/params.txt
+outdir = data/output/paramILS
+instance_file = data/parameters/tuning_inst.txt
+test_instance_file = data/parameters/test_inst.txt
