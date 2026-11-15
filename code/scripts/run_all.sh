@@ -40,7 +40,7 @@ for item in "${INSTANCES[@]}"; do
 	fi
 done
 
-ALL_INSTANCES=${INSTANCE_FILES[@]}
+ALL_INSTANCES=("${INSTANCES_FILES[@]}")
 if [ "$TOTAL" -eq 0 ]; then
     echo "[-] Error. No hay instancias en '$INSTANCES_DIR'." >&2
     exit 1
@@ -70,7 +70,7 @@ done
 
 echo "[=] Resultados de ejecución"
 echo "[=] Parámetros definidos:           ${@}"
-echo "[=] Total de Instancias Ejecutadas: $SUCESS_COUNT"
+echo "[=] Total de Instancias Ejecutadas: $SUCCESS_COUNT"
 
 if [ "$FAIL_COUNT" -gt 0 ]; then
     exit 1
