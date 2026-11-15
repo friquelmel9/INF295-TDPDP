@@ -9,7 +9,6 @@
 
 Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print = false);
 
-
 namespace fs = std::filesystem;
 
 /* Función principal que obtiene una solución para el problema de TDPDP usando un algoritmo evolutivo.
@@ -20,12 +19,16 @@ namespace fs = std::filesystem;
  * - g (int): Cantidad de generaciones a realizar (iteraciones del evolutivo)
  * - p_mut (double 0.0-1.0): Probabilidad de mutuación
  * - p_cro (double 0.0-1.0): Probabilidad de cruzamiento
+ * - print (bool): Imprime el estado del algoritmo por generación
+ * - use_dp (bool): Utiliza programación dinámica (dpDrones) en vez de greedyDrones
  * */
 Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print){
 	
-	// Generar la población inicial y asignar drones greedy
+	auto assign_drones = [&](Individual& indv){dpDrones(indv, tdpdp);};
+
+	// Generar la población inicial y asignar drones
 	std::vector<Individual> generation = generatePopulation(tdpdp, n);
-	for(Individual& indv : generation){greedyDrones(indv, tdpdp);}
+	for(Individual& indv : generation){assign_drones(indv);}
 
 	// Mejor individuo histórico
 	Individual best_indv = generation[0];
@@ -51,7 +54,7 @@ Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, dou
 
 	for(int curr_g = 0; curr_g < g; curr_g++){
 
-		if(print){std::cout << "[%] Generación: (}" << curr_g << "): Mejor evaluación actual = " << best_indv.fit << " [%] " << std::endl;}
+		if(print){std::cout << "[%] Generación: (" << curr_g << "): Mejor evaluación actual = " << best_indv.fit << " [%] " << std::endl;}
 
 		// Identificar al mejor y peor individuo de la generación actual para la adaptación
 		int best_curr_idx = 0;
@@ -103,7 +106,7 @@ Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, dou
 				int mut_type = mut_types[adaptive_mut(get_rng())];
 
 				next_gen[i] = mutation(generation[parent_idx], tdpdp, mut_type);
-				greedyDrones(next_gen[i], tdpdp);
+				assign_drones(next_gen[i]);
 			} else if (prob < p_mut + p_cro) { // CRUZAMIENTO (guiado por aptitud)
 				int p1 = select_parent(generation);
 				int p2 = select_parent(generation);
@@ -113,7 +116,7 @@ Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, dou
 					}
 				}
 				next_gen[i] = crossing(generation[p1], generation[p2], tdpdp);
-				greedyDrones(next_gen[i], tdpdp);
+				assign_drones(next_gen[i]);
 			} else { // Selección / Supervivencia por torneo
 				int selected_idx = select_parent(generation);
 				next_gen[i] = generation[selected_idx];
@@ -176,7 +179,7 @@ int main(int argc, char** argv){
 	double runtime = std::chrono::duration<double>(t_end - t_start).count();
 
 	if(print){std::cout << "[-] Algoritmo Evolutivo Finalizado [-]" << std::endl;}
-	if(print){std::cout << "[=] Resultado final: " << runtime << " [=]" << std::endl;}
+	if(print){std::cout << "[=] Resultado final: runtime = " << runtime << " (s), con resultado " << best.fit << "[=]" << std::endl;}
 	if(result){std::cout << "Result for ParamILS: SAT, " << runtime << ", " << g << ", " << best.fit << ", " << seed << std::endl;}
 
 	std::string results_file = fs::exists("data/results") ? "data/results/results.csv" : "code/data/results/results.csv";

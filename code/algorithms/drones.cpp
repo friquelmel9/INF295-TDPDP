@@ -9,7 +9,7 @@
  *   y actualiza indv.fit e indv.is_calculated.
  * */
 void dpDrones(Individual &indv, const TDPDP &tdpdp){
-	if (indv.tsp_seq.empty()) {
+	if (indv.tsp_seq.empty() || indv.tsp_seq.size() != static_cast<size_t>(tdpdp.c)) {
 		return;
 	}
 
@@ -84,7 +84,7 @@ void dpDrones(Individual &indv, const TDPDP &tdpdp){
 
 				// 2. Restricción de batería/endurance (Modelo.tex restricción 19):
 				// La duración total de la salida (vuelo + tiempo de espera del dron en k) no debe exceder E
-				if (std::max(truck_travel_time, drone_flight_time) > tdpdp.E) {
+				if (std::max(truck_travel_time, drone_flight_time) > tdpdp.E + 1e-6) {
 					continue;
 				}
 
@@ -105,10 +105,19 @@ void dpDrones(Individual &indv, const TDPDP &tdpdp){
 	indv.dron_seq.clear();
 	indv.dron_launch.clear();
 
+	if (dp[c + 1] == INF) {
+		indv.fit = fitness(indv, tdpdp);
+		indv.is_calculated = CALCULATED;
+		return;
+	}
+
 	std::vector<DronFlight> flights;
 	int curr = c + 1;
 	while (curr > 0) {
 		int p = prev_node[curr];
+		if (p < 0) {
+			break;
+		}
 		Client d = drone_customer[curr];
 		if (d != NO_DRON_CLIENTS) {
 			flights.push_back({V[p], d, V[curr]});
@@ -124,7 +133,7 @@ void dpDrones(Individual &indv, const TDPDP &tdpdp){
 	// Marcar en seq los clientes atendidos por el dron (DRON_DELIVERY)
 	std::unordered_set<Client> dron_clients;
 	for (const auto& flight : indv.dron_seq) {dron_clients.insert(flight.j);}
-	for (int idx = 0; idx < c; ++idx) {
+	for (size_t idx = 0; idx < indv.tsp_seq.size(); ++idx) {
 		if (dron_clients.find(indv.tsp_seq[idx]) != dron_clients.end()) {
 			indv.seq[idx] = DRON_DELIVERY;
 		} else {
