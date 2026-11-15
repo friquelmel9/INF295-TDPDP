@@ -280,7 +280,7 @@ void greedyDrones(Individual &indv, const TDPDP &tdpdp){
 
                     Time drone_flight_time = tdpdp.tauDrone[i_node][j] + tdpdp.tauDrone[j][k_node];
 
-                    // 2. Restricción de batería/endurance (Modelo.tex restricción 19):
+                    // 2. Restricción de batería/endurance):
                     Time truck_travel_time = cand_prefix[idx_k] - cand_prefix[idx_i];
                     if (std::max(truck_travel_time, drone_flight_time) > tdpdp.E) {
                         continue;
