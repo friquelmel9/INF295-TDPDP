@@ -12,5 +12,8 @@ test-wrapper: compile
 tune: compile
 	ruby libs/paramils2.3.8-source/param_ils_2_3_run.rb -scenariofile data/parameters/scenario.txt -numRun 1 
 
+run-all: compile
+	bash run_all.sh
+
 clean:
 	rm -rf exec
