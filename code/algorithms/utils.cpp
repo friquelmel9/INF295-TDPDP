@@ -44,8 +44,14 @@ void read_file(const std::string &filepath, TDPDP &inst){
 	file >> inst.size_F;
 	
 	inst.F.resize(inst.size_F);
+	inst.in_F.assign(static_cast<size_t>(num_nodes) * num_nodes * num_nodes, false);
 	for(int i=0; i<inst.size_F; ++i){
 		file >> inst.F[i].i >> inst.F[i].j >> inst.F[i].k;
+		if(inst.F[i].i >= 0 && inst.F[i].i < num_nodes &&
+		   inst.F[i].j >= 0 && inst.F[i].j < num_nodes &&
+		   inst.F[i].k >= 0 && inst.F[i].k < num_nodes){
+			inst.in_F[(static_cast<size_t>(inst.F[i].i) * num_nodes + inst.F[i].j) * num_nodes + inst.F[i].k] = true;
+		}
 	}
 
 	file.close();

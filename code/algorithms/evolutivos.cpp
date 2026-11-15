@@ -35,6 +35,10 @@ Time fitness(const Individual &indv, const TDPDP &tdpdp){
 	Time current_time = 0.0;
 	Client current_node = start_depot;
 
+	Time penalty = 0.0;
+	Time drone_departure_time = 0.0;
+	DronFlight active_flight;
+
 	bool drone_in_flight = false;
 	Client drone_recovery_node = NO_DRON_CLIENTS;
 	Time drone_arrival_time = 0.0;
@@ -42,11 +46,15 @@ Time fitness(const Individual &indv, const TDPDP &tdpdp){
 	// 1. Nodo de inicio: depósito inicial (0)
 	// Si se lanza un dron desde el depósito inicial, se agrega tiempo de setup SL
 	if (launch_map.find(current_node) != launch_map.end()) {
-		const auto& flight = launch_map.at(current_node);
+		active_flight = launch_map.at(current_node);
+		if (!tdpdp.is_valid_flight(active_flight.i, active_flight.j, active_flight.k)) {
+			penalty += 1e5;
+		}
 		current_time += tdpdp.SL;
+		drone_departure_time = current_time;
 		drone_in_flight = true;
-		drone_recovery_node = flight.k;
-		drone_arrival_time = current_time + tdpdp.tauDrone[flight.i][flight.j] + tdpdp.tauDrone[flight.j][flight.k];
+		drone_recovery_node = active_flight.k;
+		drone_arrival_time = current_time + tdpdp.tauDrone[active_flight.i][active_flight.j] + tdpdp.tauDrone[active_flight.j][active_flight.k];
 	}
 
 	// 2. Paradas intermedias del camión
@@ -58,7 +66,12 @@ Time fitness(const Individual &indv, const TDPDP &tdpdp){
 		// Si el dron se reúne con el camión en current_node:
 		// Se calcula el máximo entre la llegada del camión y la del dron, más tiempo de recuperación SR
 		if (drone_in_flight && drone_recovery_node == current_node) {
-			current_time = std::max(current_time, drone_arrival_time) + tdpdp.SR;
+			Time truck_arrival_time = current_time;
+			Time sortie_time = std::max(truck_arrival_time, drone_arrival_time) - drone_departure_time;
+			if (sortie_time > tdpdp.E + 1e-6) {
+				penalty += 1e5 + 1000.0 * (sortie_time - tdpdp.E);
+			}
+			current_time = std::max(truck_arrival_time, drone_arrival_time) + tdpdp.SR;
 			drone_in_flight = false;
 			drone_recovery_node = NO_DRON_CLIENTS;
 		}
@@ -66,11 +79,15 @@ Time fitness(const Individual &indv, const TDPDP &tdpdp){
 		// Si se lanza un dron desde current_node (incluyendo caso de re-lanzamiento en el mismo nodo):
 		// Se agrega el tiempo de setup de lanzamiento SL
 		if (!drone_in_flight && launch_map.find(current_node) != launch_map.end()) {
-			const auto& flight = launch_map.at(current_node);
+			active_flight = launch_map.at(current_node);
+			if (!tdpdp.is_valid_flight(active_flight.i, active_flight.j, active_flight.k)) {
+				penalty += 1e5;
+			}
 			current_time += tdpdp.SL;
+			drone_departure_time = current_time;
 			drone_in_flight = true;
-			drone_recovery_node = flight.k;
-			drone_arrival_time = current_time + tdpdp.tauDrone[flight.i][flight.j] + tdpdp.tauDrone[flight.j][flight.k];
+			drone_recovery_node = active_flight.k;
+			drone_arrival_time = current_time + tdpdp.tauDrone[active_flight.i][active_flight.j] + tdpdp.tauDrone[active_flight.j][active_flight.k];
 		}
 	}
 
@@ -80,17 +97,23 @@ Time fitness(const Individual &indv, const TDPDP &tdpdp){
 
 	// Si el dron se reúne con el camión en el depósito final:
 	if (drone_in_flight && drone_recovery_node == current_node) {
-		current_time = std::max(current_time, drone_arrival_time) + tdpdp.SR;
+		Time truck_arrival_time = current_time;
+		Time sortie_time = std::max(truck_arrival_time, drone_arrival_time) - drone_departure_time;
+		if (sortie_time > tdpdp.E + 1e-6) {
+			penalty += 1e5 + 1000.0 * (sortie_time - tdpdp.E);
+		}
+		current_time = std::max(truck_arrival_time, drone_arrival_time) + tdpdp.SR;
 		drone_in_flight = false;
 		drone_recovery_node = NO_DRON_CLIENTS;
 	} else if (drone_in_flight) {
 		// Resguardo para vuelos que no alcanzaron su punto de reunión antes del final
+		penalty += 1e6;
 		current_time = std::max(current_time, drone_arrival_time) + tdpdp.SR;
 		drone_in_flight = false;
 		drone_recovery_node = NO_DRON_CLIENTS;
 	}
 
-	return current_time;
+	return current_time + penalty;
 }
 
 /* Función que realiza el cruzamiento (crossing) de dos padres

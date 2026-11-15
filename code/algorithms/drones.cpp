@@ -53,31 +53,39 @@ void dpDrones(Individual &indv, const TDPDP &tdpdp){
 			if (dp[i] == INF) continue;
 
 			for (int j = i + 1; j < k; ++j) {
+				Client i_node = V[i];
 				Client j_node = V[j];
+				Client k_node = V[k];
 
-				// Si j es atendible por dron
-				if (tdpdp.Cdrones.find(j_node) == tdpdp.Cdrones.end()) {continue;}
+				// 1. Comprobar que la tupla (i, j, k) pertenezca al conjunto de vuelos factibles F
+				if (!tdpdp.is_valid_flight(i_node, j_node, k_node)) {
+					continue;
+				}
 
-				// Autonomía de vuelo del dron (tauDrone(i, j) + tauDrone(j, k) <= E)
-				Time drone_flight_time = tdpdp.tauDrone[V[i]][j_node] + tdpdp.tauDrone[j_node][V[k]];
-				if (drone_flight_time > tdpdp.E) {continue;}
+				Time drone_flight_time = tdpdp.tauDrone[i_node][j_node] + tdpdp.tauDrone[j_node][k_node];
 
 				// Tiempo de viaje del camión de V[i] a V[k] sin pasar por V[j] en O(1)
 				Time truck_travel_time = 0.0;
 				if (k == i + 2) {
 					// Solo estaba j entre i y k; el camión va directo V[i] -> V[k]
-					truck_travel_time = tdpdp.tauTruck[V[i]][V[k]];
+					truck_travel_time = tdpdp.tauTruck[i_node][k_node];
 				} else if (j == i + 1) {
 					// j es el primer nodo después de i; el camión va V[i] -> V[i+2] -> ... -> V[k]
-					truck_travel_time = tdpdp.tauTruck[V[i]][V[i + 2]] + (prefix_truck[k] - prefix_truck[i + 2]);
+					truck_travel_time = tdpdp.tauTruck[i_node][V[i + 2]] + (prefix_truck[k] - prefix_truck[i + 2]);
 				} else if (j == k - 1) {
 					// j es el último nodo antes de k; el camión va V[i] -> ... -> V[k-2] -> V[k]
-					truck_travel_time = (prefix_truck[k - 2] - prefix_truck[i]) + tdpdp.tauTruck[V[k - 2]][V[k]];
+					truck_travel_time = (prefix_truck[k - 2] - prefix_truck[i]) + tdpdp.tauTruck[V[k - 2]][k_node];
 				} else {
 					// j está en el interior; camión va V[i] -> ... -> V[j-1] -> V[j+1] -> ... -> V[k]
 					truck_travel_time = (prefix_truck[j - 1] - prefix_truck[i])
 					                  + tdpdp.tauTruck[V[j - 1]][V[j + 1]]
 					                  + (prefix_truck[k] - prefix_truck[j + 1]);
+				}
+
+				// 2. Restricción de batería/endurance (Modelo.tex restricción 19):
+				// La duración total de la salida (vuelo + tiempo de espera del dron en k) no debe exceder E
+				if (std::max(truck_travel_time, drone_flight_time) > tdpdp.E) {
+					continue;
 				}
 
 				// Llegada coordinada a V[k]:
@@ -227,6 +235,10 @@ void greedyDrones(Individual &indv, const TDPDP &tdpdp){
             }
 
             int cand_route_len = static_cast<int>(cand_full_route.size());
+            std::vector<Time> cand_prefix(cand_route_len, 0.0);
+            for (int p = 1; p < cand_route_len; ++p) {
+                cand_prefix[p] = cand_prefix[p - 1] + tdpdp.tauTruck[cand_full_route[p - 1]][cand_full_route[p]];
+            }
 
             Individual cand_ind;
             cand_ind.tsp_seq = indv.tsp_seq;
@@ -252,9 +264,16 @@ void greedyDrones(Individual &indv, const TDPDP &tdpdp){
                         continue;
                     }
 
-                    // 1. Comprobar que la duración del vuelo no supere el límite de energía E
+                    // 1. Comprobar que la tupla (i, j, k) pertenezca al conjunto de vuelos factibles F
+                    if (!tdpdp.is_valid_flight(i_node, j, k_node)) {
+                        continue;
+                    }
+
                     Time drone_flight_time = tdpdp.tauDrone[i_node][j] + tdpdp.tauDrone[j][k_node];
-                    if (drone_flight_time > tdpdp.E) {
+
+                    // 2. Restricción de batería/endurance (Modelo.tex restricción 19):
+                    Time truck_travel_time = cand_prefix[idx_k] - cand_prefix[idx_i];
+                    if (std::max(truck_travel_time, drone_flight_time) > tdpdp.E) {
                         continue;
                     }
 

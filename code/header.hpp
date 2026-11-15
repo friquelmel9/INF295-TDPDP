@@ -3,6 +3,14 @@
 
 // Librerias
 #include <stdio.h>
+#include <vector>
+#include <random>
+#include <unordered_set>
+#include <set>
+#include <string>
+#include <iostream>
+#include <limits>
+#include <algorithm>
 
 // Función para números aleatorios
 inline std::mt19937& get_rng() {static std::mt19937 rng(std::random_device{}());return rng;}
@@ -56,6 +64,17 @@ struct TDPDP {
 	
 	int size_F; // Tamaño del conjunto F
 	std::vector<DronFlight> F; // Conjunto de los posibles caminos para un dron
+	std::vector<bool> in_F; // Tabla aplanada (c+2)^3 para verificar pertenencia a F en O(1)
+
+	/*
+	 * Función auxiliar para verificar si el vuelo (i, j, k) pertenece a F en O(1)
+	 * */
+	inline bool is_valid_flight(Client i, Client j, Client k) const {
+		if (in_F.empty()) return false;
+		int num_nodes = c + 2;
+		if (i < 0 || i >= num_nodes || j < 0 || j >= num_nodes || k < 0 || k >= num_nodes) return false;
+		return in_F[(static_cast<size_t>(i) * num_nodes + j) * num_nodes + k];
+	}
 	
 	/*
 	 * Función auxiliar que imprime los datos de la instancia
