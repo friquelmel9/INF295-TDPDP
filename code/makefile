@@ -12,5 +12,8 @@ tune: compile # Ejecutar el tuneo
 run-all: compile
 	bash ./scripts/run_all.sh
 
+run-exp: compile
+	bash ./scripts/run_exp.sh
+
 clean:
 	rm -rf exec
