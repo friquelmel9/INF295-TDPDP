@@ -162,11 +162,6 @@ int main(int argc, char** argv){
 
 	CLI11_PARSE(app, argc, argv);
 
-	// Revisión de valores validos
-	while(p_mut+p_cro>=1.0){
-		p_mut-=0.05;
-		p_cro-=0.05;
-	}
 	if(seed>=0){seed_rng(static_cast<unsigned int>(seed));}
 
 	// Evaluación del algoritmo

@@ -1,45 +1,29 @@
 #!/usr/bin/env bash
-# ==============================================================================
-# Script to execute TDPDP Evolutionary Algorithm for all instances
-# in data/instancias/.
-#
-# Assumed location: inside the 'code' folder.
-# ==============================================================================
 
 set -u
 
-# Ensure execution from the directory where this script is located (the 'code' folder)
+# Ejecución desde la carpeta code
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Directory containing instance files
 INSTANCES_DIR="${INSTANCES_DIR:-data/instancias}"
-
-# Executable name
 EXEC="./exec"
 
-# Show help message if requested
+# Mensaje de ayuda (Gemini)
 if [[ "$*" == *"-h"* ]] || [[ "$*" == *"--help"* ]]; then
-    echo "Usage: $0 [options]"
+    echo "Uso: $0 [options]"
     echo ""
-    echo "Executes TDPDP evolutionary algorithm for all files in '$INSTANCES_DIR'."
-    echo "Any extra options provided are forwarded directly to the executable."
+    echo "Realiza todas las instancias guardadas en:  '$INSTANCES_DIR'."
+    echo "Opciones extras son dadas por el ejecutable."
     echo ""
-    echo "Examples:"
-    echo "  $0                  # Run all instances with default parameters"
-    echo "  $0 -p               # Run all instances with generation progress output"
-    echo "  $0 -n 20 -g 10      # Custom population size and generation count"
+    echo "Ejemplos"
+    echo "  $0                  # Corre todas las instancias con los parametros comunes"
+    echo "  $0 -p               # Corre las instancias printeando su desarrollo"
+    echo "  $0 -n 20 -g 10      # Corre las instancias cambiando el n y el g"
     echo ""
-    echo "Underlying executable options:"
-    if [ -x "$EXEC" ]; then
-        "$EXEC" --help
-    else
-        echo "  (Compile with 'make compile' to see executable help)"
-    fi
-    exit 0
 fi
 
-# Check if executable exists; attempt compilation if not present
+# Ejecutar ejecutable
 if [ ! -x "$EXEC" ]; then
     echo "[!] Executable '$EXEC' not found. Attempting compilation..."
     if [ -f "makefile" ]; then
@@ -54,18 +38,16 @@ if [ ! -x "$EXEC" ]; then
     echo "[+] Compilation successful."
 fi
 
-# Verify instances directory exists
+# Verificación de instancias
 if [ ! -d "$INSTANCES_DIR" ]; then
     echo "[-] Error: Directory '$INSTANCES_DIR' not found." >&2
     exit 1
 fi
 
-# Collect all files inside the directory
 shopt -s nullglob
 ALL_ENTRIES=("$INSTANCES_DIR"/*)
 shopt -u nullglob
 
-# Filter only regular files
 INSTANCE_FILES=()
 for item in "${ALL_ENTRIES[@]}"; do
     if [ -f "$item" ]; then
@@ -76,17 +58,12 @@ done
 TOTAL=${#INSTANCE_FILES[@]}
 
 if [ "$TOTAL" -eq 0 ]; then
-    echo "[-] Error: No files found inside '$INSTANCES_DIR'." >&2
+    echo "[-] Error. No hay instancias en '$INSTANCES_DIR'." >&2
     exit 1
 fi
 
 echo "============================================================"
-echo "Starting TDPDP Evolutionary Algorithm execution"
-echo "Folder:    $INSTANCES_DIR"
-echo "Instances: $TOTAL file(s) found"
-if [ "$#" -gt 0 ]; then
-    echo "Arguments: $*"
-fi
+echo "Iniciando ejecución de `TDPDP_Evolutivo.cpp`"
 echo "============================================================"
 
 SUCCESS_COUNT=0
@@ -96,17 +73,17 @@ START_ALL=$(date +%s)
 INDEX=1
 for file in "${INSTANCE_FILES[@]}"; do
     filename="$(basename "$file")"
-    echo "[$INDEX/$TOTAL] Processing: $filename"
+    echo "[$INDEX/$TOTAL] Instancia Actual: $filename"
     
     t_start=$(date +%s)
     if "$EXEC" -i "$file" "$@"; then
         t_end=$(date +%s)
-        echo "    [✓] Done in $((t_end - t_start))s"
+        echo "    [✓] Instancia realizada en $((t_end - t_start))s"
         ((SUCCESS_COUNT++))
     else
         exit_code=$?
         t_end=$(date +%s)
-        echo "    [✗] Failed with exit code $exit_code in $((t_end - t_start))s" >&2
+        echo "    [✗] Instancia fallada $exit_code in $((t_end - t_start))s" >&2
         ((FAIL_COUNT++))
     fi
     ((INDEX++))
@@ -116,11 +93,11 @@ END_ALL=$(date +%s)
 TOTAL_TIME=$((END_ALL - START_ALL))
 
 echo "============================================================"
-echo "Execution Summary"
-echo "Total instances: $TOTAL"
-echo "Successful:      $SUCCESS_COUNT"
-echo "Failed:          $FAIL_COUNT"
-echo "Total duration:  ${TOTAL_TIME}s"
+echo "Resumen de ejecución"
+echo "Tolta Instancias: $TOTAL"
+echo "Ejecutadas:       $SUCCESS_COUNT"
+echo "Fallos:           $FAIL_COUNT"
+echo "Duración Final:   ${TOTAL_TIME}s"
 echo "============================================================"
 
 if [ "$FAIL_COUNT" -gt 0 ]; then
