@@ -1,0 +1,6 @@
+Final best parameter configuration: cro=0.3, g=200, mut=0.2, n=200
+==================================================================
+Active parameters: cro=0.3, g=200, mut=0.2, n=200
+==================================================================
+Training quality of this final best found parameter configuration: 10697.929317073185, based on 205 runs with cutoff 30.0
+Test quality of this final best found parameter configuration: 11895.888620000022, based on 1000 independent runs with cutoff 30.0
