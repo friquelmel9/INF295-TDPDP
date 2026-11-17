@@ -7,7 +7,7 @@
 #include "algorithms/evolutivos.cpp"
 #include "algorithms/drones.cpp"
 
-Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print = false);
+Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print = false, const std::string &inst = "", const std::string &step_filepath = "", int seed = -1);
 
 namespace fs = std::filesystem;
 
@@ -20,11 +20,15 @@ namespace fs = std::filesystem;
  * - p_mut (double 0.0-1.0): Probabilidad de mutuación
  * - p_cro (double 0.0-1.0): Probabilidad de cruzamiento
  * - print (bool): Imprime el estado del algoritmo por generación
- * - use_dp (bool): Utiliza programación dinámica (dpDrones) en vez de greedyDrones
+ * - inst (string): Ruta/nombre de la instancia
+ * - step_filepath (string): Ruta del archivo para registrar cada iteración
+ * - seed (int): Semilla aleatoria utilizada
  * */
-Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print){
+Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print, const std::string &inst, const std::string &step_filepath, int seed){
 	
 	auto assign_drones = [&](Individual& indv){dpDrones(indv, tdpdp);};
+
+	auto t_start = std::chrono::high_resolution_clock::now();
 
 	// Generar la población inicial y asignar drones
 	std::vector<Individual> generation = generatePopulation(tdpdp, n);
@@ -125,8 +129,22 @@ Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, dou
 			i++;
 		}
 
+		// Actualizar el mejor global con los nuevos individuos generados
+		for(int j = 1; j < n; ++j){
+			if(next_gen[j].fit < best_indv.fit){
+				best_indv = next_gen[j];
+			}
+		}
+
 		// Actualizar generación para la siguiente iteración intercambiando buffers
 		std::swap(generation, next_gen);
+
+		// Registrar iteración si se especificó archivo de paso
+		if(!step_filepath.empty()){
+			auto t_now = std::chrono::high_resolution_clock::now();
+			double curr_runtime = std::chrono::duration<double>(t_now - t_start).count();
+			write_step(step_filepath, inst, tdpdp.c, seed, n, g, p_mut, p_cro, curr_g, curr_runtime, best_indv.fit);
+		}
 	}
 
 	// Revisar si algún individuo de la última generación supera al mejor histórico
@@ -173,8 +191,12 @@ int main(int argc, char** argv){
 
 	if(print){std::cout << "[+] Aplicando Algoritmo Evolutivo a Instancia " << inst << " [+] " << std::endl;}
 
+	std::string results_dir = fs::exists("data/results") ? "data/results" : "code/data/results";
+	std::string results_file = results_dir + "/results.csv";
+	std::string step_results_file = results_dir + "/results_per_iteration.csv";
+
 	auto t_start = std::chrono::high_resolution_clock::now();
-	Individual best = evolutionaryTdpdp(tdpdp, n, g, p_mut, p_cro, print);
+	Individual best = evolutionaryTdpdp(tdpdp, n, g, p_mut, p_cro, print, inst, step_results_file, seed);
 	auto t_end = std::chrono::high_resolution_clock::now();
 	double runtime = std::chrono::duration<double>(t_end - t_start).count();
 
@@ -182,8 +204,7 @@ int main(int argc, char** argv){
 	if(print){std::cout << "[=] Resultado final: runtime = " << runtime << " (s), con resultado " << best.fit << "[=]" << std::endl;}
 	if(result){std::cout << "Result for ParamILS: SAT, " << runtime << ", " << g << ", " << best.fit << ", " << seed << std::endl;}
 
-	std::string results_file = fs::exists("data/results") ? "data/results/results.csv" : "code/data/results/results.csv";
-	write_result(results_file, n, g, p_mut, p_cro, runtime, best.fit);
+	write_result(results_file, inst, tdpdp, seed, n, g, p_mut, p_cro, runtime, best.fit);
 
 	return 0;
 }

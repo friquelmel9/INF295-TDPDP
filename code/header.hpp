@@ -193,6 +193,6 @@ void greedyDrones(Individual &indv, const TDPDP &tdpdp); // Genera mediante un g
  * */
 
 void read_file(const std::string &filepath, TDPDP &inst); // Lectura de un archivo instancia
-void write_result(const std::string &filepath, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval);
-
+void write_result(const std::string &filepath, const std::string &inst, const TDPDP &tdpdp, int seed, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval);
+void write_step(const std::string &filepath, const std::string &inst, int c, int seed, int n, int g, Prob p_mut, Prob p_cro, int i, double runtime, Time eval);
 #endif

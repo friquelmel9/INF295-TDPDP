@@ -66,6 +66,9 @@ void read_file(const std::string &filepath, TDPDP &inst){
  *
  * Parámetros:
  * - filepath (string): Ruta del archivo
+ * - inst (string): Ruta o nombre del archivo de la instancia
+ * - tdpdp (TDPDP): Objeto con datos de la instancia (c)
+ * - seed (int): Semilla utilizada
  * - n (int): Tamaño de la población
  * - g (int): Cantidad de generaciones
  * - p_mut (Prob): Probabilidad de mutación
@@ -73,10 +76,20 @@ void read_file(const std::string &filepath, TDPDP &inst){
  * - runtime (double): Tiempo de ejecución en segundos
  * - eval (Time): Evaluación/fitness del mejor individuo
  */
-void write_result(const std::string &filepath, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval){
+void write_result(const std::string &filepath, const std::string &inst, const TDPDP &tdpdp, int seed, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval){
+	if (filepath.empty()) return;
 	std::filesystem::path p(filepath);
 	if (p.has_parent_path()) {
 		std::filesystem::create_directories(p.parent_path());
+	}
+
+	std::string instance_name = std::filesystem::path(inst).filename().string();
+	if (instance_name.empty()) instance_name = inst;
+
+	bool write_header = false;
+	std::error_code ec;
+	if (!std::filesystem::exists(filepath, ec) || std::filesystem::file_size(filepath, ec) == 0) {
+		write_header = true;
 	}
 
 	std::ofstream file(filepath, std::ios::app);
@@ -85,18 +98,59 @@ void write_result(const std::string &filepath, int n, int g, Prob p_mut, Prob p_
 		return;
 	}
 
-	// Si el archivo está vacío o recién creado, escribir encabezado
-	file.seekp(0, std::ios::end);
-	if (file.tellp() == 0) {
-		file << "n,g,p_mut,p_cro,runtime,eval\n";
+	if (write_header) {
+		file << "instance,c,seed,n,g,p_mut,p_cro,runtime,eval\n";
+	}
+	file << instance_name << "," << tdpdp.c << "," << seed << "," << n << "," << g << "," << p_mut << "," << p_cro << "," << runtime << "," << eval << "\n";
+
+	file.close();
+}
+
+/*
+ * Función auxiliar para registrar el avance de cada iteración/generación del evolutivo.
+ * Si el directorio no existe, lo crea automáticamente.
+ * Si el archivo no existe o está vacío, escribe la cabecera CSV.
+ * Escribe en modo append.
+ *
+ * Parámetros:
+ * - filepath (string): Ruta del archivo (ej. results_per_iteration.csv)
+ * - inst (string): Ruta o nombre de la instancia
+ * - c (int): Cantidad de clientes
+ * - seed (int): Semilla utilizada
+ * - n (int): Tamaño de la población
+ * - g (int): Cantidad total de generaciones
+ * - p_mut (Prob): Probabilidad de mutación
+ * - p_cro (Prob): Probabilidad de cruzamiento
+ * - i (int): Iteración/generación actual
+ * - runtime (double): Tiempo transcurrido acumulado en segundos
+ * - eval (Time): Evaluación/fitness del mejor individuo histórico hasta esa generación
+ */
+void write_step(const std::string &filepath, const std::string &inst, int c, int seed, int n, int g, Prob p_mut, Prob p_cro, int i, double runtime, Time eval){
+	if (filepath.empty()) return;
+	std::filesystem::path p(filepath);
+	if (p.has_parent_path()) {
+		std::filesystem::create_directories(p.parent_path());
 	}
 
-	file << n << ","
-	     << g << ","
-	     << p_mut << ","
-	     << p_cro << ","
-	     << runtime << ","
-	     << eval << "\n";
+	std::string instance_name = std::filesystem::path(inst).filename().string();
+	if (instance_name.empty()) instance_name = inst;
+
+	bool write_header = false;
+	std::error_code ec;
+	if (!std::filesystem::exists(filepath, ec) || std::filesystem::file_size(filepath, ec) == 0) {
+		write_header = true;
+	}
+
+	std::ofstream file(filepath, std::ios::app);
+	if (!file.is_open()){
+		std::cerr << "Error: No se pudo abrir o crear el archivo en " << filepath << std::endl;
+		return;
+	}
+
+	if (write_header) {
+		file << "instance,c,seed,n,g,p_mut,p_cro,i,runtime,eval\n";
+	}
+	file << instance_name << "," << c << "," << seed << "," << n << "," << g << "," << p_mut << "," << p_cro << "," << i << "," << runtime << "," << eval << "\n";
 
 	file.close();
 }
