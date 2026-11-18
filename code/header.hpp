@@ -3,10 +3,29 @@
 
 // Librerias
 #include <stdio.h>
+#include <vector>
+#include <random>
+#include <unordered_set>
+#include <unordered_map>
+#include <set>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <chrono>
+#include <filesystem>
+#include <limits>
+#include <algorithm>
+
+// Función para números aleatorios
+inline std::mt19937& get_rng() {static std::mt19937 rng(std::random_device{}());return rng;}
+
+inline void seed_rng(unsigned int seed_value) {get_rng().seed(seed_value);}
 
 // Definición de nombres
 using Client = int;
 using Time = double;
+using Prob = double;
 
 // Constantes para camión
 const bool TRUCK_DELIVERY = 1;
@@ -50,6 +69,17 @@ struct TDPDP {
 	
 	int size_F; // Tamaño del conjunto F
 	std::vector<DronFlight> F; // Conjunto de los posibles caminos para un dron
+	std::vector<bool> in_F; // Tabla aplanada (c+2)^3 para verificar pertenencia a F en O(1)
+
+	/*
+	 * Función auxiliar para verificar si el vuelo (i, j, k) pertenece a F en O(1)
+	 * */
+	inline bool is_valid_flight(Client i, Client j, Client k) const {
+		if (in_F.empty()) return false;
+		int num_nodes = c + 2;
+		if (i < 0 || i >= num_nodes || j < 0 || j >= num_nodes || k < 0 || k >= num_nodes) return false;
+		return in_F[(static_cast<size_t>(i) * num_nodes + j) * num_nodes + k];
+	}
 	
 	/*
 	 * Función auxiliar que imprime los datos de la instancia
@@ -60,10 +90,7 @@ struct TDPDP {
 			return;
 		}
 		std::cout << "==============================================" << std::endl;
-		std::cout << "                   TDPDP                      " << std::endl;
-		std::cout << "==============================================" << std::endl;
-		std::cout << "                 Parámetros                   " << std::endl;
-		std::cout << "c (#Clients): " << c << std::endl;
+		std::cout << "                   TDPDP                      " << std::endl; std::cout << "==============================================" << std::endl; std::cout << "                 Parámetros                   " << std::endl; std::cout << "c (#Clients): " << c << std::endl;
 		std::cout << "SL (Time Setup Launch): " << SL << std::endl;
 		std::cout << "SR (Time Setup Recover): " << SR << std::endl;
 		std::cout << "E (Endurance): " << E << std::endl;
@@ -101,15 +128,15 @@ struct TDPDP {
 /* Struct que representa una solución del problema TDPDP (Algoritmo Evolutivo)
  * */
 struct Individual {
+
+	// Variables
 	std::vector<Client> tsp_seq; // Secuencia de clientes del TSP del camión. Incluye todos los caminos, exceptuando el depot 0 y c+1, es decir, se asumen que ocurren pero no se encuentran insertos dentro de la secuencia.
-	
-	std::vector<Client> truck_seq; // Secuencia de clientes del TDPDP (tras usar greedyDrones o dpDrones). Incluye todos los caminos realizados por el camión, exceptuando el depot 0 y c+1, es decir, asumen que ocurren pero no se encuentran insertos dentro del vector.
+	std::vector<bool> seq; // Secuencia de clientes del TDPDP. Utiliza las constantes TRUCK_DELIVERY o DRON_DELIVERY para indicar que tipo de entrega es.
 	std::vector<DronFlight> dron_seq; // Secuencia de vuelos del TDPDP. Utilizado para revisar
 	std::set<Client> dron_launch; // Set auxiliar en donde estan aquellos clientes desde donde el camión lanza el dron. Sirve par amantener un calculo mejor de las rutas.
-	
 	Time fit = 0; // Valor de evaluación a la secuencia actual
 	bool is_calculated = TO_CALC; // Indica si se ha hecho la evaluación del fitness()
-
+	
 	/*
 	 * Función auxiliar que imprime los datos del individuo
 	 * */
@@ -123,9 +150,9 @@ struct Individual {
 		}
 		std::cout << std::endl;
 
-		std::cout << "truck_seq: ";
-		for (Client c : truck_seq) {
-			std::cout << c << " ";
+		std::cout << "seq: ";
+		for (bool b : seq) {
+			std::cout << b << " ";
 		}
 		std::cout << std::endl;
 
@@ -150,21 +177,24 @@ struct Individual {
 /* Conjunto de declaración de funciones para la implementación evolutiva
  * */
 
-Time fitness(const Individual indv, const TDPDP tdpdp); // Función que evalua el individuo del TDPDP
-Individual crossing(const Individual father1, const Individual father2, const TDPDP tdpdp); // Genera un hijo de dos padres
-Individual mutation(Individual &indv, const TDPDP tdpdp, const int type); // Genera una mutuación dentro del individuo original
-void repair(Individual &indv, const TDPDP tdpdp); // Repara algún individuo
-std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n); // Genera la población inicial
+Time fitness(const Individual &indv, const TDPDP &tdpdp); // Función que evalua el individuo del TDPDP
+Individual crossing(const Individual &father1, const Individual &father2, const TDPDP &tdpdp); // Genera un hijo de dos padres
+Individual mutation(const Individual &indv, const TDPDP &tdpdp, const int type); // Genera una mutuación dentro del individuo original
+void repair(Individual &indv, const TDPDP &tdpdp); // Repara algún individuo
+Individual random_nearest_neighborhood(const TDPDP &tdpdp, int k = 5); // Genera una instancia inicial mediante GRASP (Randomized Nearest Neighbor)
+inline Individual random_nearest_neighboorhodd(const TDPDP &tdpdp, int k = 5) { return random_nearest_neighborhood(tdpdp, k); }
+std::vector<Individual> generatePopulation(const TDPDP &tdpdp, const int n); // Genera la población inicial
 
 /* Conjunto de declaración de funciones para la obtención optima del dron.
  * */
 
-void dpDrones(Individual &indv, const TDPDP tdpdp); // Genera mediante un dp la asignación de los drones 
-void greedyDrones(Individual &indv, const TDPDP tdpdp); // Genera mediante un greedy la asignación de los drones						
+void dpDrones(Individual &indv, const TDPDP &tdpdp); // Genera mediante un dp la asignación de los drones 
+void greedyDrones(Individual &indv, const TDPDP &tdpdp); // Genera mediante un greedy la asignación de los drones						
 
 /* Utilidades 
  * */
 
-void read_file(std::string filepath, TDPDP &inst); // Lectura de un archivo instancia
-
+void read_file(const std::string &filepath, TDPDP &inst); // Lectura de un archivo instancia
+void write_result(const std::string &filepath, const std::string &inst, const TDPDP &tdpdp, int seed, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval);
+void write_step(const std::string &filepath, const std::string &inst, int c, int seed, int n, int g, Prob p_mut, Prob p_cro, int i, double runtime, Time eval);
 #endif

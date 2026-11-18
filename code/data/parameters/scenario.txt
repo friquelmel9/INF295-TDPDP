@@ -1,0 +1,12 @@
+algo = bash libs/paramILS/wrapper.sh
+execdir = .
+deterministic = 0
+run_obj = qual
+overall_obj = mean
+cutoff_time = 30
+cutoff_length = max
+tunerTimeout = 28800
+paramfile = data/parameters/params.txt
+outdir = data/output/paramILS
+instance_file = data/parameters/tuning_inst.txt
+test_instance_file = data/parameters/test_inst.txt

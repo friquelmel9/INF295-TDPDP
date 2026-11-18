@@ -5,10 +5,144 @@
  * - tdpdp (TDPDP): Datos del problema tdpdp
  *
  * Retorno:
- * - No realiza un retorno, pero guarda el viaje optimo en indv.dronFlights.
+ * - Guarda la asignación óptima de dron en indv.seq, indv.dron_seq y indv.dron_launch,
+ *   y actualiza indv.fit e indv.is_calculated.
  * */
-void dpDrones(Individual &indv, const TDPDP tdpdp){
+void dpDrones(Individual &indv, const TDPDP &tdpdp){
+	if (indv.tsp_seq.empty() || indv.tsp_seq.size() != static_cast<size_t>(tdpdp.c)) {
+		return;
+	}
 
+	const int c = tdpdp.c;
+	const Client start_depot = 0;
+	const Client end_depot = c + 1;
+
+	// Vector V con la secuencia completa incluyendo depósitos: 0, s_1, s_2, ..., s_c, c+1
+	const int n_nodes = c + 2;
+	std::vector<Client> V(n_nodes);
+	V[0] = start_depot;
+	for (int idx = 0; idx < c; ++idx) {V[idx + 1] = indv.tsp_seq[idx];}
+	V[c + 1] = end_depot;
+
+	// Precalcular sumas prefijas de distancias del camión para la secuencia V
+	// prefix_truck[k] es la distancia de recorrer V[0] -> V[1] -> ... -> V[k]
+	std::vector<Time> prefix_truck(n_nodes, 0.0);
+	for (int k = 1; k < n_nodes; ++k) { prefix_truck[k] = prefix_truck[k - 1] + tdpdp.tauTruck[V[k - 1]][V[k]];}
+
+	// dp[k]: tiempo mínimo acumulado para atender a todos los clientes hasta el nodo V[k], estando el camión en V[k] con el dron disponible.
+	const Time INF = std::numeric_limits<Time>::infinity();
+	std::vector<Time> dp(n_nodes, INF);
+	std::vector<int> prev_node(n_nodes, -1);
+	std::vector<Client> drone_customer(n_nodes, NO_DRON_CLIENTS);
+
+	dp[0] = 0.0;
+
+	for (int k = 1; k < n_nodes; ++k) {
+		// Opción 1: Paso directo del camión desde V[k-1] hasta V[k] (sin salida de dron)
+		if (dp[k - 1] < INF) {
+			Time cost = dp[k - 1] + tdpdp.tauTruck[V[k - 1]][V[k]];
+			if (cost < dp[k]) {
+				dp[k] = cost;
+				prev_node[k] = k - 1;
+				drone_customer[k] = NO_DRON_CLIENTS;
+			}
+		}
+
+		// Opción 2: Salida de dron lanzada en V[i] (i < k - 1) que atiende a V[j] (i < j < k) y se reúne con el camión en V[k]. El camión atiende a todos los nodos intermedios entre V[i] y V[k] excepto V[j].
+		for (int i = 0; i < k - 1; ++i) {
+			if (dp[i] == INF) continue;
+
+			for (int j = i + 1; j < k; ++j) {
+				Client i_node = V[i];
+				Client j_node = V[j];
+				Client k_node = V[k];
+
+				// 1. Comprobar que la tupla (i, j, k) pertenezca al conjunto de vuelos factibles F
+				if (!tdpdp.is_valid_flight(i_node, j_node, k_node)) {
+					continue;
+				}
+
+				Time drone_flight_time = tdpdp.tauDrone[i_node][j_node] + tdpdp.tauDrone[j_node][k_node];
+
+				// Tiempo de viaje del camión de V[i] a V[k] sin pasar por V[j] en O(1)
+				Time truck_travel_time = 0.0;
+				if (k == i + 2) {
+					// Solo estaba j entre i y k; el camión va directo V[i] -> V[k]
+					truck_travel_time = tdpdp.tauTruck[i_node][k_node];
+				} else if (j == i + 1) {
+					// j es el primer nodo después de i; el camión va V[i] -> V[i+2] -> ... -> V[k]
+					truck_travel_time = tdpdp.tauTruck[i_node][V[i + 2]] + (prefix_truck[k] - prefix_truck[i + 2]);
+				} else if (j == k - 1) {
+					// j es el último nodo antes de k; el camión va V[i] -> ... -> V[k-2] -> V[k]
+					truck_travel_time = (prefix_truck[k - 2] - prefix_truck[i]) + tdpdp.tauTruck[V[k - 2]][k_node];
+				} else {
+					// j está en el interior; camión va V[i] -> ... -> V[j-1] -> V[j+1] -> ... -> V[k]
+					truck_travel_time = (prefix_truck[j - 1] - prefix_truck[i])
+					                  + tdpdp.tauTruck[V[j - 1]][V[j + 1]]
+					                  + (prefix_truck[k] - prefix_truck[j + 1]);
+				}
+
+				// 2. Restricción de batería/endurance (Modelo.tex restricción 19):
+				// La duración total de la salida (vuelo + tiempo de espera del dron en k) no debe exceder E
+				if (std::max(truck_travel_time, drone_flight_time) > tdpdp.E + 1e-6) {
+					continue;
+				}
+
+				// Llegada coordinada a V[k]:
+				Time arrival_time = dp[i] + tdpdp.SL + std::max(truck_travel_time, drone_flight_time) + tdpdp.SR;
+
+				if (arrival_time < dp[k]) {
+					dp[k] = arrival_time;
+					prev_node[k] = i;
+					drone_customer[k] = j_node;
+				}
+			}
+		}
+	}
+
+	// Reconstrucción de la solución óptima recorriendo los predecesores
+	indv.seq.assign(c, TRUCK_DELIVERY);
+	indv.dron_seq.clear();
+	indv.dron_launch.clear();
+
+	if (dp[c + 1] == INF) {
+		indv.fit = fitness(indv, tdpdp);
+		indv.is_calculated = CALCULATED;
+		return;
+	}
+
+	std::vector<DronFlight> flights;
+	int curr = c + 1;
+	while (curr > 0) {
+		int p = prev_node[curr];
+		if (p < 0) {
+			break;
+		}
+		Client d = drone_customer[curr];
+		if (d != NO_DRON_CLIENTS) {
+			flights.push_back({V[p], d, V[curr]});
+			indv.dron_launch.insert(V[p]);
+		}
+		curr = p;
+	}
+
+	// Las salidas de dron se invierten para guardarlas en orden cronológico
+	std::reverse(flights.begin(), flights.end());
+	indv.dron_seq = std::move(flights);
+
+	// Marcar en seq los clientes atendidos por el dron (DRON_DELIVERY)
+	std::unordered_set<Client> dron_clients;
+	for (const auto& flight : indv.dron_seq) {dron_clients.insert(flight.j);}
+	for (size_t idx = 0; idx < indv.tsp_seq.size(); ++idx) {
+		if (dron_clients.find(indv.tsp_seq[idx]) != dron_clients.end()) {
+			indv.seq[idx] = DRON_DELIVERY;
+		} else {
+			indv.seq[idx] = TRUCK_DELIVERY;
+		}
+	}
+
+	indv.fit = fitness(indv, tdpdp);
+	indv.is_calculated = CALCULATED;
 }
 
 /* Función que asigna los drones utilizando algoritmo de Greedy
@@ -18,15 +152,15 @@ void dpDrones(Individual &indv, const TDPDP tdpdp){
  * - tdpdp (TDPDP): Datos del problema tdpdp
  *
  * Retorno:
- * - No realiza un retorno, pero guarda el viaje optimo en indv.truck_seq, indv.dron_seq y indv.dron_launch.
+ * - No realiza un retorno, pero guarda el viaje optimo en indv.seq, indv.dron_seq y indv.dron_launch.
  * */
-void greedyDrones(Individual &indv, const TDPDP tdpdp){
+void greedyDrones(Individual &indv, const TDPDP &tdpdp){
     if (indv.tsp_seq.empty()) {
         return;
     }
 
     // Inicialización del camión y dron a partir de tsp_seq
-    indv.truck_seq = indv.tsp_seq;
+    indv.seq.assign(indv.tsp_seq.size(), TRUCK_DELIVERY);
     indv.dron_seq.clear();
     indv.dron_launch.clear();
 
@@ -43,10 +177,12 @@ void greedyDrones(Individual &indv, const TDPDP tdpdp){
 
         // Construir la ruta completa del camión actual incluyendo depósitos: 0, ..., c+1
         std::vector<Client> full_route;
-        full_route.reserve(indv.truck_seq.size() + 2);
+        full_route.reserve(indv.tsp_seq.size() + 2);
         full_route.push_back(start_depot);
-        for (Client c : indv.truck_seq) {
-            full_route.push_back(c);
+        for (size_t p = 0; p < indv.tsp_seq.size(); ++p) {
+            if (indv.seq[p] == TRUCK_DELIVERY) {
+                full_route.push_back(indv.tsp_seq[p]);
+            }
         }
         full_route.push_back(end_depot);
 
@@ -71,30 +207,30 @@ void greedyDrones(Individual &indv, const TDPDP tdpdp){
         }
 
         // Paso 1: Evaluar cada cliente j elegible para dron visitado por el camión
-        for (size_t j_idx = 0; j_idx < indv.truck_seq.size(); ++j_idx) {
-            Client j = indv.truck_seq[j_idx];
+        for (size_t j_idx = 0; j_idx < indv.tsp_seq.size(); ++j_idx) {
+            if (indv.seq[j_idx] != TRUCK_DELIVERY) {
+                continue;
+            }
+            Client j = indv.tsp_seq[j_idx];
 
             // Comprobar que j sea elegible para ser atendido por el dron
             if (tdpdp.Cdrones.find(j) == tdpdp.Cdrones.end()) {
                 continue;
             }
 
-            // Generar ruta de camión tentativa sin el cliente j
-            std::vector<Client> cand_truck_seq;
-            cand_truck_seq.reserve(indv.truck_seq.size() - 1);
-            for (size_t p = 0; p < indv.truck_seq.size(); ++p) {
-                if (p != j_idx) {
-                    cand_truck_seq.push_back(indv.truck_seq[p]);
-                }
+            // Un nodo que ya actúa como punto de despegue o recuperación no puede ser atendido por dron
+            if (used_launch.find(j) != used_launch.end() || used_recovery.find(j) != used_recovery.end()) {
+                continue;
             }
 
+            // Generar ruta de camión tentativa sin el cliente j
             std::vector<Client> cand_full_route;
-            cand_full_route.reserve(cand_truck_seq.size() + 2);
-            cand_full_route.push_back(start_depot);
-            for (Client c : cand_truck_seq) {
-                cand_full_route.push_back(c);
+            cand_full_route.reserve(full_route.size() - 1);
+            for (Client c : full_route) {
+                if (c != j) {
+                    cand_full_route.push_back(c);
+                }
             }
-            cand_full_route.push_back(end_depot);
 
             std::unordered_map<Client, int> cand_node_pos;
             for (size_t p = 0; p < cand_full_route.size(); ++p) {
@@ -108,10 +244,15 @@ void greedyDrones(Individual &indv, const TDPDP tdpdp){
             }
 
             int cand_route_len = static_cast<int>(cand_full_route.size());
+            std::vector<Time> cand_prefix(cand_route_len, 0.0);
+            for (int p = 1; p < cand_route_len; ++p) {
+                cand_prefix[p] = cand_prefix[p - 1] + tdpdp.tauTruck[cand_full_route[p - 1]][cand_full_route[p]];
+            }
 
             Individual cand_ind;
             cand_ind.tsp_seq = indv.tsp_seq;
-            cand_ind.truck_seq = cand_truck_seq;
+            cand_ind.seq = indv.seq;
+            cand_ind.seq[j_idx] = DRON_DELIVERY;
 
             // Paso 2: Explorar todos los pares de despegue i y reencuentro k (donde i precede a k)
             for (int idx_i = 0; idx_i < cand_route_len - 1; ++idx_i) {
@@ -132,9 +273,16 @@ void greedyDrones(Individual &indv, const TDPDP tdpdp){
                         continue;
                     }
 
-                    // 1. Comprobar que la duración del vuelo no supere el límite de energía E
+                    // 1. Comprobar que la tupla (i, j, k) pertenezca al conjunto de vuelos factibles F
+                    if (!tdpdp.is_valid_flight(i_node, j, k_node)) {
+                        continue;
+                    }
+
                     Time drone_flight_time = tdpdp.tauDrone[i_node][j] + tdpdp.tauDrone[j][k_node];
-                    if (drone_flight_time > tdpdp.E) {
+
+                    // 2. Restricción de batería/endurance):
+                    Time truck_travel_time = cand_prefix[idx_k] - cand_prefix[idx_i];
+                    if (std::max(truck_travel_time, drone_flight_time) > tdpdp.E) {
                         continue;
                     }
 

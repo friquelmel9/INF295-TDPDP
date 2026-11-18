@@ -7,7 +7,7 @@
  * Retorno:
  * - Retorna la evaluación (Time) de la instancia. No modifica el valor guardado dentro de indv
  * */
-Time fitness(const Individual indv, const TDPDP tdpdp){
+Time fitness(const Individual &indv, const TDPDP &tdpdp){
 	
 	const Client start_depot = 0;
 	const Client end_depot = tdpdp.c + 1;
@@ -19,10 +19,25 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
 	}
 
 	// Secuencia de clientes visitados por el camión (excluyendo depósitos)
-	const std::vector<Client>& truck_stops = !indv.truck_seq.empty() ? indv.truck_seq : indv.tsp_seq;
+	std::vector<Client> truck_stops;
+	if (!indv.seq.empty()) {
+		truck_stops.reserve(indv.tsp_seq.size());
+		for (size_t p = 0; p < indv.tsp_seq.size(); ++p) {
+			if (indv.seq[p] == TRUCK_DELIVERY) {
+				truck_stops.push_back(indv.tsp_seq[p]);
+			}
+		}
+	}
+	const std::vector<Client>& actual_truck_stops = !indv.seq.empty() ? truck_stops : indv.tsp_seq;
 
+	// Calculo del tiempo en
+	
 	Time current_time = 0.0;
 	Client current_node = start_depot;
+
+	Time penalty = 0.0;
+	Time drone_departure_time = 0.0;
+	DronFlight active_flight;
 
 	bool drone_in_flight = false;
 	Client drone_recovery_node = NO_DRON_CLIENTS;
@@ -31,15 +46,19 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
 	// 1. Nodo de inicio: depósito inicial (0)
 	// Si se lanza un dron desde el depósito inicial, se agrega tiempo de setup SL
 	if (launch_map.find(current_node) != launch_map.end()) {
-		const auto& flight = launch_map.at(current_node);
+		active_flight = launch_map.at(current_node);
+		if (!tdpdp.is_valid_flight(active_flight.i, active_flight.j, active_flight.k)) {
+			penalty += 1e5;
+		}
 		current_time += tdpdp.SL;
+		drone_departure_time = current_time;
 		drone_in_flight = true;
-		drone_recovery_node = flight.k;
-		drone_arrival_time = current_time + tdpdp.tauDrone[flight.i][flight.j] + tdpdp.tauDrone[flight.j][flight.k];
+		drone_recovery_node = active_flight.k;
+		drone_arrival_time = current_time + tdpdp.tauDrone[active_flight.i][active_flight.j] + tdpdp.tauDrone[active_flight.j][active_flight.k];
 	}
 
 	// 2. Paradas intermedias del camión
-	for (Client next_node : truck_stops) {
+	for (Client next_node : actual_truck_stops) {
 		// Tiempo del camión para trasladarse al siguiente cliente
 		current_time += tdpdp.tauTruck[current_node][next_node];
 		current_node = next_node;
@@ -47,7 +66,12 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
 		// Si el dron se reúne con el camión en current_node:
 		// Se calcula el máximo entre la llegada del camión y la del dron, más tiempo de recuperación SR
 		if (drone_in_flight && drone_recovery_node == current_node) {
-			current_time = std::max(current_time, drone_arrival_time) + tdpdp.SR;
+			Time truck_arrival_time = current_time;
+			Time sortie_time = std::max(truck_arrival_time, drone_arrival_time) - drone_departure_time;
+			if (sortie_time > tdpdp.E + 1e-6) {
+				penalty += 1e5 + 1000.0 * (sortie_time - tdpdp.E);
+			}
+			current_time = std::max(truck_arrival_time, drone_arrival_time) + tdpdp.SR;
 			drone_in_flight = false;
 			drone_recovery_node = NO_DRON_CLIENTS;
 		}
@@ -55,11 +79,15 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
 		// Si se lanza un dron desde current_node (incluyendo caso de re-lanzamiento en el mismo nodo):
 		// Se agrega el tiempo de setup de lanzamiento SL
 		if (!drone_in_flight && launch_map.find(current_node) != launch_map.end()) {
-			const auto& flight = launch_map.at(current_node);
+			active_flight = launch_map.at(current_node);
+			if (!tdpdp.is_valid_flight(active_flight.i, active_flight.j, active_flight.k)) {
+				penalty += 1e5;
+			}
 			current_time += tdpdp.SL;
+			drone_departure_time = current_time;
 			drone_in_flight = true;
-			drone_recovery_node = flight.k;
-			drone_arrival_time = current_time + tdpdp.tauDrone[flight.i][flight.j] + tdpdp.tauDrone[flight.j][flight.k];
+			drone_recovery_node = active_flight.k;
+			drone_arrival_time = current_time + tdpdp.tauDrone[active_flight.i][active_flight.j] + tdpdp.tauDrone[active_flight.j][active_flight.k];
 		}
 	}
 
@@ -69,22 +97,23 @@ Time fitness(const Individual indv, const TDPDP tdpdp){
 
 	// Si el dron se reúne con el camión en el depósito final:
 	if (drone_in_flight && drone_recovery_node == current_node) {
-		current_time = std::max(current_time, drone_arrival_time) + tdpdp.SR;
+		Time truck_arrival_time = current_time;
+		Time sortie_time = std::max(truck_arrival_time, drone_arrival_time) - drone_departure_time;
+		if (sortie_time > tdpdp.E + 1e-6) {
+			penalty += 1e5 + 1000.0 * (sortie_time - tdpdp.E);
+		}
+		current_time = std::max(truck_arrival_time, drone_arrival_time) + tdpdp.SR;
 		drone_in_flight = false;
 		drone_recovery_node = NO_DRON_CLIENTS;
 	} else if (drone_in_flight) {
 		// Resguardo para vuelos que no alcanzaron su punto de reunión antes del final
+		penalty += 1e6;
 		current_time = std::max(current_time, drone_arrival_time) + tdpdp.SR;
 		drone_in_flight = false;
 		drone_recovery_node = NO_DRON_CLIENTS;
 	}
 
-	return current_time;
-}
-
-// Generador de números aleatorios para operadores evolutivos
-namespace {
-	std::mt19937 rng(std::random_device{}());
+	return current_time + penalty;
 }
 
 /* Función que realiza el cruzamiento (crossing) de dos padres
@@ -98,7 +127,7 @@ namespace {
  * Retorno
  * - Retorna una nueva instancia del problema con el cruzamiento de ambos padres. 
  * */
-Individual crossing(const Individual father1, const Individual father2, const TDPDP tdpdp){
+Individual crossing(const Individual &father1, const Individual &father2, const TDPDP &tdpdp){
 	Individual child;
 	const int n = static_cast<int>(father1.tsp_seq.size());
 
@@ -113,8 +142,8 @@ Individual crossing(const Individual father1, const Individual father2, const TD
 
 	// Selección de puntos de corte para la subsecuencia continua del Padre 1
 	std::uniform_int_distribution<int> dist(0, n - 1);
-	int cut1 = dist(rng);
-	int cut2 = dist(rng);
+	int cut1 = dist(get_rng());
+	int cut2 = dist(get_rng());
 	if (cut1 > cut2) {
 		std::swap(cut1, cut2);
 	}
@@ -122,14 +151,14 @@ Individual crossing(const Individual father1, const Individual father2, const TD
 	// Asegurar que la subsecuencia no abarque toda la secuencia si n > 1 para permitir aporte del Padre 2
 	if (n > 2) {
 		while (cut1 == cut2 || (cut1 == 0 && cut2 == n - 1)) {
-			cut1 = dist(rng);
-			cut2 = dist(rng);
+			cut1 = dist(get_rng());
+			cut2 = dist(get_rng());
 			if (cut1 > cut2) {
 				std::swap(cut1, cut2);
 			}
 		}
 	} else if (n == 2) {
-		cut1 = dist(rng);
+		cut1 = dist(get_rng());
 		cut2 = cut1;
 	}
 
@@ -188,7 +217,7 @@ Individual crossing(const Individual father1, const Individual father2, const TD
  * Retorno
  * - Retorna una nueva instancia del problema con una mutuación respecto al individuo original (indv)
  * */
-Individual mutation(Individual &indv, const TDPDP tdpdp, const int type){
+Individual mutation(const Individual &indv, const TDPDP &tdpdp, const int type){
 	Individual mutated;
 	mutated.tsp_seq = indv.tsp_seq;
 
@@ -200,32 +229,32 @@ Individual mutation(Individual &indv, const TDPDP tdpdp, const int type){
 	std::uniform_int_distribution<int> dist(0, n - 1);
 
 	if (type == MUT_TWOOPT) {
-		int i = dist(rng);
-		int j = dist(rng);
+		int i = dist(get_rng());
+		int j = dist(get_rng());
 		while (i == j) {
-			j = dist(rng);
+			j = dist(get_rng());
 		}
 		if (i > j) {
 			std::swap(i, j);
 		}
 		std::reverse(mutated.tsp_seq.begin() + i, mutated.tsp_seq.begin() + j + 1);
 	} else if (type == MUT_SWAP) {
-		int i = dist(rng);
-		int j = dist(rng);
+		int i = dist(get_rng());
+		int j = dist(get_rng());
 		while (i == j) {
-			j = dist(rng);
+			j = dist(get_rng());
 		}
 		std::swap(mutated.tsp_seq[i], mutated.tsp_seq[j]);
 	} else if (type == MUT_SCRAMBLE) {
-		int i = dist(rng);
-		int j = dist(rng);
+		int i = dist(get_rng());
+		int j = dist(get_rng());
 		while (i == j) {
-			j = dist(rng);
+			j = dist(get_rng());
 		}
 		if (i > j) {
 			std::swap(i, j);
 		}
-		std::shuffle(mutated.tsp_seq.begin() + i, mutated.tsp_seq.begin() + j + 1, rng);
+		std::shuffle(mutated.tsp_seq.begin() + i, mutated.tsp_seq.begin() + j + 1, get_rng());
 	}
 
 	return mutated;
@@ -235,11 +264,67 @@ Individual mutation(Individual &indv, const TDPDP tdpdp, const int type){
  * La reparación unicamente considera el TSP 
  * NOTA: Probablemente esta función no tenga uso en el largo plazo, pero la dejare por si acaso.
  * */
-void repair(Individual &indv, const TDPDP tdpdp){
+void repair(Individual &indv, const TDPDP &tdpdp){
 
 }
 
-/* Función que genera instancias iniciales para el tdpdp de manera aleatoria
+/* Función que genera una instancia inicial para el TDPDP mediante GRASP (Randomized Nearest Neighbor)
+ *
+ * Parámetros:
+ * - tdpdp (TDPDP): Datos del problema TDPDP asociado a las instancias
+ * - k (int): Cantidad de mejores vecinos más cercanos a considerar en la Lista Restringida de Candidatos (RCL)
+ *
+ * Retorno:
+ * - Retorna un individuo con los datos de tsp_seq generados mediante la heurística constructiva aleatorizada.
+ * */
+Individual random_nearest_neighborhood(const TDPDP &tdpdp, int k){
+	Individual ind;
+	if (tdpdp.c <= 0) {
+		return ind;
+	}
+
+	const int c = tdpdp.c;
+	std::vector<Client> tour;
+	tour.reserve(c);
+
+	std::vector<bool> visited(c + 1, false);
+	Client current = 0; // Se inicia la ruta desde el depósito inicial (nodo 0)
+
+	std::vector<std::pair<Time, Client>> candidates;
+	candidates.reserve(c);
+
+	for(int step = 0; step < c; ++step){
+		candidates.clear();
+		for(Client cand = 1; cand <= c; ++cand){
+			if(!visited[cand]){
+				candidates.push_back({tdpdp.tauTruck[current][cand], cand});
+			}
+		}
+
+		int cand_count = static_cast<int>(candidates.size());
+		int rcl_size = std::min(cand_count, std::max(1, k));
+
+		std::partial_sort(candidates.begin(), candidates.begin() + rcl_size, candidates.end(),
+			[](const std::pair<Time, Client>& a, const std::pair<Time, Client>& b){
+				return a.first < b.first;
+			}
+		);
+
+		// Selección con probabilidad uniforme entre los rcl_size mejores candidatos
+		std::uniform_int_distribution<int> dist_rcl(0, rcl_size - 1);
+		int chosen_idx = dist_rcl(get_rng());
+		Client next_client = candidates[chosen_idx].second;
+
+		tour.push_back(next_client);
+		visited[next_client] = true;
+		current = next_client;
+	}
+
+	ind.tsp_seq = std::move(tour);
+	return ind;
+}
+
+/* Función que genera instancias iniciales para el tdpdp mediante GRASP (Randomized Nearest Neighbor)
  *
  * Parámetros
  * - tdpdp (TDPDP): Datos del problema tdpdp asociado a las instancias
@@ -248,19 +333,13 @@ void repair(Individual &indv, const TDPDP tdpdp){
  * Retorno:
  * - Retorna una población donde cada individuo viene con los datos del tsp_seq completados.
  * */
-std::vector<Individual> generatePopulation(const TDPDP tdpdp, const int n){
+std::vector<Individual> generatePopulation(const TDPDP &tdpdp, const int n){
 	std::vector<Individual> population;
+	if (n <= 0) return population;
 	population.reserve(n);
 
-	std::vector<Client> base_tour(tdpdp.c);
-	for(Client i=1; i<=tdpdp.c; ++i){base_tour[i-1] = i;}
-
 	for(int j=0; j<n; ++j){
-		std::vector<Client> tour = base_tour;
-		std::shuffle(tour.begin(), tour.end(), rng);
-		Individual ind;
-		ind.tsp_seq = tour;
-		population.push_back(ind);
+		population.push_back(random_nearest_neighborhood(tdpdp, 5));
 	}
 
 	return population;

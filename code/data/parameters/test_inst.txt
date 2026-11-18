@@ -1,0 +1,5 @@
+data/instancias/Instance_100.1_new.txt
+data/instancias/Instance_100.2_new.txt
+data/instancias/Instance_100.3_new.txt
+data/instancias/Instance_100.4_new.txt
+data/instancias/Instance_100.5_new.txt
