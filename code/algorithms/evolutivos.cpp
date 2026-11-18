@@ -268,7 +268,63 @@ void repair(Individual &indv, const TDPDP &tdpdp){
 
 }
 
-/* Función que genera instancias iniciales para el tdpdp de manera aleatoria
+/* Función que genera una instancia inicial para el TDPDP mediante GRASP (Randomized Nearest Neighbor)
+ *
+ * Parámetros:
+ * - tdpdp (TDPDP): Datos del problema TDPDP asociado a las instancias
+ * - k (int): Cantidad de mejores vecinos más cercanos a considerar en la Lista Restringida de Candidatos (RCL)
+ *
+ * Retorno:
+ * - Retorna un individuo con los datos de tsp_seq generados mediante la heurística constructiva aleatorizada.
+ * */
+Individual random_nearest_neighborhood(const TDPDP &tdpdp, int k){
+	Individual ind;
+	if (tdpdp.c <= 0) {
+		return ind;
+	}
+
+	const int c = tdpdp.c;
+	std::vector<Client> tour;
+	tour.reserve(c);
+
+	std::vector<bool> visited(c + 1, false);
+	Client current = 0; // Se inicia la ruta desde el depósito inicial (nodo 0)
+
+	std::vector<std::pair<Time, Client>> candidates;
+	candidates.reserve(c);
+
+	for(int step = 0; step < c; ++step){
+		candidates.clear();
+		for(Client cand = 1; cand <= c; ++cand){
+			if(!visited[cand]){
+				candidates.push_back({tdpdp.tauTruck[current][cand], cand});
+			}
+		}
+
+		int cand_count = static_cast<int>(candidates.size());
+		int rcl_size = std::min(cand_count, std::max(1, k));
+
+		std::partial_sort(candidates.begin(), candidates.begin() + rcl_size, candidates.end(),
+			[](const std::pair<Time, Client>& a, const std::pair<Time, Client>& b){
+				return a.first < b.first;
+			}
+		);
+
+		// Selección con probabilidad uniforme entre los rcl_size mejores candidatos
+		std::uniform_int_distribution<int> dist_rcl(0, rcl_size - 1);
+		int chosen_idx = dist_rcl(get_rng());
+		Client next_client = candidates[chosen_idx].second;
+
+		tour.push_back(next_client);
+		visited[next_client] = true;
+		current = next_client;
+	}
+
+	ind.tsp_seq = std::move(tour);
+	return ind;
+}
+
+/* Función que genera instancias iniciales para el tdpdp mediante GRASP (Randomized Nearest Neighbor)
  *
  * Parámetros
  * - tdpdp (TDPDP): Datos del problema tdpdp asociado a las instancias
@@ -279,17 +335,11 @@ void repair(Individual &indv, const TDPDP &tdpdp){
  * */
 std::vector<Individual> generatePopulation(const TDPDP &tdpdp, const int n){
 	std::vector<Individual> population;
+	if (n <= 0) return population;
 	population.reserve(n);
 
-	std::vector<Client> base_tour(tdpdp.c);
-	for(Client i=1; i<=tdpdp.c; ++i){base_tour[i-1] = i;}
-
 	for(int j=0; j<n; ++j){
-		std::vector<Client> tour = base_tour;
-		std::shuffle(tour.begin(), tour.end(), get_rng());
-		Individual ind;
-		ind.tsp_seq = tour;
-		population.push_back(ind);
+		population.push_back(random_nearest_neighborhood(tdpdp, 5));
 	}
 
 	return population;

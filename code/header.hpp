@@ -181,6 +181,8 @@ Time fitness(const Individual &indv, const TDPDP &tdpdp); // Función que evalua
 Individual crossing(const Individual &father1, const Individual &father2, const TDPDP &tdpdp); // Genera un hijo de dos padres
 Individual mutation(const Individual &indv, const TDPDP &tdpdp, const int type); // Genera una mutuación dentro del individuo original
 void repair(Individual &indv, const TDPDP &tdpdp); // Repara algún individuo
+Individual random_nearest_neighborhood(const TDPDP &tdpdp, int k = 5); // Genera una instancia inicial mediante GRASP (Randomized Nearest Neighbor)
+inline Individual random_nearest_neighboorhodd(const TDPDP &tdpdp, int k = 5) { return random_nearest_neighborhood(tdpdp, k); }
 std::vector<Individual> generatePopulation(const TDPDP &tdpdp, const int n); // Genera la población inicial
 
 /* Conjunto de declaración de funciones para la obtención optima del dron.
