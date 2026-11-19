@@ -4,6 +4,7 @@ AGENTS.md
 
 # Codigo
 code/exec
+.venv/
 
 # Resultados
 code/data/results/results-sa.csv
