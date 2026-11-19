@@ -18,7 +18,6 @@ De la definición del VRP, se define una variante conocida como CVRP, la cual se
 
 Conociendo el problema de VRP, el TDPDP es una variante del VRP en la que se incluye un dron, el cual permite realizar entregas en conjunto al vehículo. Siguiendo la definición realizada en \cite{Murray2015Flying}, este dron tiene las características de que su costo para viajar desde un nodo puede ser distinto al costo del camión y, adicionalmente, puede hacer entregas en paralelo mientras el camión visita otros nodos, lo cual permite hacer el costo asociado al viaje más bajo y los tiempos de entrega más cortos. 
 
-
 \subsection{Restricciones}
 
 Adicionalmente a las restricciones del VRP, se tienen restricciones exclusivas del TDPDP relacionadas con el dron. Según \cite{Murray2015Flying}, hay restricciones con respecto a la cantidad de drones por camión, la batería del dron, y las velocidades del dron. Solo puede haber un dron asociado a cada camión, el cual al salir del camión debe reunirse con este en algún nodo posterior. El dron tiene una batería asociada, la cual indica cuánta distancia puede recorrer y cuánto tiempo puede quedarse en espera (por ejemplo, un dron podría esperar en un nodo al camión siempre y cuando le quede batería cuando este llegue), y por último la velocidad del dron limita qué nodos pueden visitarse.
@@ -28,6 +27,8 @@ Adicionalmente a las restricciones del VRP, se tienen restricciones exclusivas d
 El objetivo del TDPDP es minimizar el tiempo de retorno más tardío de ambos vehículos al depósito, lo cual se traduce en saber cuál es la ruta que se realiza. 
 
 Las soluciones del problema vienen según la selección de qué nodos se visitan con el camión, cuáles se visitan con el dron, y en qué orden se realizan estas entregas. La ventaja de este modelo en comparación con un VRP es el tiempo que se puede ahorrar utilizando el dron para entregas más rápidas que las realizadas con el camión.
+
+Se proponen otras variantes para la función objetivo. En \cite{thomas2024collaborative} se menciona minimizar el costo operacional, donde el costo se asocia a la distancia recorridas por dron y camión, además de tiempo ocioso del camión. También en \cite{moshrefjavadi2021applications} se propone medir como función objetivo la suma de tiempos de espera para cada cliente con su pedido.
 
 \subsection{Complejidad}
 
