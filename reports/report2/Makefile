@@ -2,11 +2,8 @@ texfile = PlantillaEntrega2
 bibfile = Referencias.bib
 
 documento: $(texfile).tex $(bibfile)
-	latex $(texfile).tex
 	bibtex $(texfile).aux
-	latex $(texfile).tex
-	latex $(texfile).tex
-	dvipdf $(texfile).dvi
+	pdflatex $(texfile).tex
 
 clean:
 	rm -f *~
