@@ -7,3 +7,7 @@ code/exec
 
 # Resultados
 code/data/results/results-sa.csv
+
+# Report
+reports/report2/PlantillaEntrega2*
+!reports/report2/PlantillaEntrega2.tex
