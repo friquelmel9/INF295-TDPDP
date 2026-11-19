@@ -6,6 +6,10 @@ Este módulo procesa los resultados almacenados en 'code/data/results' y los par
 en 'code/data/parameters_code', consolidando datasets y generando gráficos comparativos
 organizados en 'code/data/plots'.
 
+Adopta un estilo monocromático clásico de publicación académica (Elsevier, Springer
+y gráficos generados originalmente en R base), optimizado para impresión en escala
+de grises y publicación de alta fidelidad.
+
 Uso:
     python code/algorithms/plots.py [--all] [--output code/data/plots]
 """
@@ -15,7 +19,9 @@ import os
 from pathlib import Path
 
 # Configurar directorio de configuración de matplotlib temporal para evitar problemas de permisos
-os.environ.setdefault("MPLCONFIGDIR", "/tmp/matplotlib_cache")
+cache_dir = Path("/tmp/matplotlib_cache")
+cache_dir.mkdir(parents=True, exist_ok=True)
+os.environ["MPLCONFIGDIR"] = str(cache_dir)
 
 # Si se ejecuta con un python sin matplotlib ni pandas, intentar usar el venv local
 try:
@@ -32,29 +38,72 @@ except ImportError:
 import argparse
 import glob
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
 import numpy as np
 import pandas as pd
 
 # Usar backend Agg sin entorno gráfico
 matplotlib.use("Agg")
 
-# Estilo general de gráficos
+# Estilo general de gráficos - Estilo monocromático clásico de publicación académica (Elsevier, Springer, R base)
 plt.rcParams.update({
-    "figure.titlesize": 14,
-    "axes.titlesize": 12,
-    "axes.labelsize": 11,
+    "font.family": "serif",
+    "font.serif": ["DejaVu Serif", "Times New Roman", "Computer Modern Roman", "FreeSerif"],
+    "mathtext.fontset": "cm",
+    "figure.titlesize": 13,
+    "figure.titleweight": "bold",
+    "axes.titlesize": 11,
+    "axes.titleweight": "bold",
+    "axes.labelsize": 10,
+    "axes.labelweight": "bold",
     "xtick.labelsize": 9,
     "ytick.labelsize": 9,
-    "legend.fontsize": 9,
-    "grid.alpha": 0.35,
-    "grid.linestyle": "--",
+    "legend.fontsize": 8.5,
+    "legend.title_fontsize": 9,
+    "legend.frameon": True,
+    "legend.edgecolor": "black",
+    "legend.facecolor": "white",
+    "legend.framealpha": 1.0,
+    "legend.fancybox": False,   # Bordes rectangulares clásicos
+    "axes.edgecolor": "black",
+    "axes.linewidth": 1.0,
+    "axes.facecolor": "white",
+    "figure.facecolor": "white",
+    "xtick.direction": "in",    # Ticks hacia el interior como en publicaciones tradicionales
+    "ytick.direction": "in",
+    "xtick.major.size": 4.5,
+    "ytick.major.size": 4.5,
+    "xtick.color": "black",
+    "ytick.color": "black",
+    "grid.color": "#d0d0d0",
+    "grid.linestyle": ":",
+    "grid.linewidth": 0.7,
+    "grid.alpha": 0.7,
     "figure.autolayout": False,
 })
 
-COLOR_GRASP = "#1f77b4"      # Azul sobrio
-COLOR_RANDOM = "#ff7f0e"     # Naranja sobrio
-COLOR_ACCENT = "#2ca02c"     # Verde
-PALETTE = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b", "#e377c2", "#7f7f7f"]
+# Paleta Monocromática Clásica (Escala de grises y tramas para publicación y fotocopiado)
+COLOR_GRASP = "#ffffff"       # Blanco puro para GRASP (serie primaria)
+COLOR_RANDOM = "#b8b8b8"      # Gris medio-claro para Random-Start
+COLOR_DARK_GRAY = "#505050"   # Gris oscuro para contraste
+COLOR_BLACK = "#000000"       # Negro sólido
+
+HATCH_GRASP = ""              # Liso
+HATCH_RANDOM = "///"          # Trama diagonal clásica
+
+# Configuración estándar para Boxplots estilo R base / Elsevier
+BOXPLOT_KWARGS = dict(
+    patch_artist=True,
+    showmeans=True,
+    meanline=True,
+    boxprops=dict(edgecolor="black", linewidth=1.1),
+    whiskerprops=dict(color="black", linestyle="--", linewidth=1.0),
+    capprops=dict(color="black", linewidth=1.1),
+    medianprops=dict(color="black", linewidth=2.0),
+    meanprops=dict(color="black", linestyle=":", linewidth=1.4),
+    flierprops=dict(marker="o", markersize=4.5, markerfacecolor="none", markeredgecolor="black", markeredgewidth=0.9),
+)
 
 
 def resolve_paths(base_dir=None):
@@ -155,7 +204,7 @@ def plot_seeds_by_instance(df_results, output_dir):
     ].copy()
 
     instances = sorted(df_seeds["instance"].unique())
-    print(f"[*] Generando gráficos de 05_seeds para {len(instances)} instancias...")
+    print(f"[*] Generando gráficos monocromáticos de 05_seeds para {len(instances)} instancias...")
 
     for inst in instances:
         sub = df_seeds[df_seeds["instance"] == inst]
@@ -170,26 +219,28 @@ def plot_seeds_by_instance(df_results, output_dir):
         grasp_vals = [pivot.loc[s, "grasp"] if (s in pivot.index and "grasp" in pivot.columns) else np.nan for s in seeds_list]
         rnd_vals = [pivot.loc[s, "random-start"] if (s in pivot.index and "random-start" in pivot.columns) else np.nan for s in seeds_list]
 
-        rects1 = ax.bar(x - width/2, grasp_vals, width, label="GRASP (results.csv)", color=COLOR_GRASP, alpha=0.9, edgecolor="black", linewidth=0.5)
-        rects2 = ax.bar(x + width/2, rnd_vals, width, label="Random-Start (randomstart.csv)", color=COLOR_RANDOM, alpha=0.9, edgecolor="black", linewidth=0.5)
+        rects1 = ax.bar(x - width/2, grasp_vals, width, label="GRASP (Inicio Heurístico)",
+                        facecolor=COLOR_GRASP, edgecolor="black", linewidth=0.9, hatch=HATCH_GRASP)
+        rects2 = ax.bar(x + width/2, rnd_vals, width, label="Random-Start (Inicio Aleatorio)",
+                        facecolor=COLOR_RANDOM, edgecolor="black", linewidth=0.9, hatch=HATCH_RANDOM)
 
-        # Líneas de promedio
+        # Líneas de promedio monocromáticas
         mean_grasp = np.nanmean(grasp_vals)
         mean_rnd = np.nanmean(rnd_vals)
-        ax.axhline(mean_grasp, color=COLOR_GRASP, linestyle="--", alpha=0.7, label=f"Media GRASP: {mean_grasp:.1f}")
-        ax.axhline(mean_rnd, color=COLOR_RANDOM, linestyle="--", alpha=0.7, label=f"Media Random: {mean_rnd:.1f}")
+        ax.axhline(mean_grasp, color="black", linestyle="--", linewidth=1.1, label=f"Media GRASP: {mean_grasp:.1f}")
+        ax.axhline(mean_rnd, color="#555555", linestyle=":", linewidth=1.4, label=f"Media Random: {mean_rnd:.1f}")
 
         # Etiquetas con valores sobre barras
         for rect in rects1:
             h = rect.get_height()
             if not np.isnan(h):
                 ax.annotate(f"{h:.1f}", xy=(rect.get_x() + rect.get_width() / 2, h),
-                            xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=7.5, rotation=0)
+                            xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=7.5)
         for rect in rects2:
             h = rect.get_height()
             if not np.isnan(h):
                 ax.annotate(f"{h:.1f}", xy=(rect.get_x() + rect.get_width() / 2, h),
-                            xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=7.5, rotation=0)
+                            xytext=(0, 3), textcoords="offset points", ha="center", va="bottom", fontsize=7.5)
 
         # Ajuste de escala Y para apreciar diferencias
         min_v = np.nanmin([np.nanmin(grasp_vals), np.nanmin(rnd_vals)])
@@ -202,8 +253,8 @@ def plot_seeds_by_instance(df_results, output_dir):
         ax.set_ylabel("Fitness (Eval - Menor es mejor)")
         ax.set_xticks(x)
         ax.set_xticklabels([f"Seed {s}" for s in seeds_list])
-        ax.grid(axis="y", linestyle="--", alpha=0.4)
-        ax.legend(loc="upper right", frameon=True, framealpha=0.9)
+        ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+        ax.legend(loc="upper right", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
 
         base_name = inst.replace(".txt", "")
         fig_path = out_dir / f"{base_name}.png"
@@ -218,16 +269,18 @@ def plot_seeds_by_instance(df_results, output_dir):
     x = np.arange(len(inst_names))
     width = 0.38
 
-    ax.bar(x - width/2, summary["grasp"], width, label="Media GRASP", color=COLOR_GRASP, edgecolor="black", linewidth=0.5)
-    ax.bar(x + width/2, summary["random-start"], width, label="Media Random-Start", color=COLOR_RANDOM, edgecolor="black", linewidth=0.5)
+    ax.bar(x - width/2, summary["grasp"], width, label="Media GRASP",
+           facecolor=COLOR_GRASP, edgecolor="black", linewidth=0.9, hatch=HATCH_GRASP)
+    ax.bar(x + width/2, summary["random-start"], width, label="Media Random-Start",
+           facecolor=COLOR_RANDOM, edgecolor="black", linewidth=0.9, hatch=HATCH_RANDOM)
 
     ax.set_title("Resumen General: Media de Semillas (05_seeds) para todas las Instancias", pad=12)
     ax.set_xlabel("Instancia")
     ax.set_ylabel("Fitness Promedio (Eval)")
     ax.set_xticks(x)
     ax.set_xticklabels(inst_names, rotation=45, ha="right")
-    ax.grid(axis="y", linestyle="--", alpha=0.4)
-    ax.legend(frameon=True)
+    ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+    ax.legend(frameon=True, edgecolor="black", facecolor="white", fancybox=False)
     plt.tight_layout()
     summary_path = out_dir / "00_summary_all_instances.png"
     fig.savefig(summary_path)
@@ -246,7 +299,6 @@ def plot_operator_balance(df_results, output_dir):
     out_dir = Path(output_dir) / "02_operator_balance"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Configuraciones de 01_zero_types y 02_operator_balance (n=200, g=200, seed=-1)
     configs = [
         {"mut": 0.3, "cro": 0.0, "label": "mut=0.3, cro=0.0\n(no_cro)", "cat": "01_zero"},
         {"mut": 0.0, "cro": 0.6, "label": "mut=0.0, cro=0.6\n(no_mut)", "cat": "01_zero"},
@@ -257,9 +309,8 @@ def plot_operator_balance(df_results, output_dir):
         {"mut": 0.6, "cro": 0.1, "label": "mut=0.6, cro=0.1", "cat": "02_balance"},
     ]
 
-    print("[*] Generando gráficos para 02_operator_balance y 01_zero_types...")
+    print("[*] Generando gráficos monocromáticos para 02_operator_balance y 01_zero_types...")
 
-    # Filtrar datos relevantes
     sub_list = []
     for cfg in configs:
         mask = (
@@ -292,29 +343,33 @@ def plot_operator_balance(df_results, output_dir):
         x = np.arange(len(labels))
         width = 0.38
 
-        bars1 = ax.bar(x - width/2, pivot["grasp"], width, label="GRASP", color=COLOR_GRASP, edgecolor="black", linewidth=0.5)
-        bars2 = ax.bar(x + width/2, pivot["random-start"], width, label="Random-Start", color=COLOR_RANDOM, edgecolor="black", linewidth=0.5)
+        bars1 = ax.bar(x - width/2, pivot["grasp"], width, label="GRASP",
+                       facecolor=COLOR_GRASP, edgecolor="black", linewidth=0.9, hatch=HATCH_GRASP)
+        bars2 = ax.bar(x + width/2, pivot["random-start"], width, label="Random-Start",
+                       facecolor=COLOR_RANDOM, edgecolor="black", linewidth=0.9, hatch=HATCH_RANDOM)
 
-        # Destacar el mejor parámetro (menor valor)
+        # Destacar el mejor parámetro (menor valor) con anotación académica y borde remarcado
         min_grasp_idx = np.nanargmin(pivot["grasp"].values)
-        bars1[min_grasp_idx].set_edgecolor("#00ff00")
         bars1[min_grasp_idx].set_linewidth(1.8)
+        best_val = pivot["grasp"].iloc[min_grasp_idx]
+        ax.annotate("*", xy=(x[min_grasp_idx] - width/2, best_val),
+                    xytext=(0, 2), textcoords="offset points", ha="center", va="bottom",
+                    fontsize=13, fontweight="bold", color="black")
 
         ax.set_title(f"Instancias de c = {c_val} Clientes", fontweight="bold")
         ax.set_xlabel("Configuración de Parámetros")
         ax.set_ylabel("Fitness Promedio (Eval)")
         ax.set_xticks(x)
         ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=8.5)
-        ax.grid(axis="y", linestyle="--", alpha=0.4)
-        ax.legend(loc="upper left")
+        ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+        ax.legend(loc="upper left", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
 
-    fig.suptitle("Comparación de Parámetros: Balance de Operadores (02) y Casos Límite (01)\n(n=200, g=200)", fontsize=15, y=0.995)
+    fig.suptitle("Comparación de Parámetros: Balance de Operadores (02) y Casos Límite (01)\n(n=200, g=200)", fontsize=14, y=0.995)
     plt.tight_layout()
     fig.savefig(out_dir / "operator_balance_by_c.png")
     plt.close(fig)
 
     # 2.B: Gráfico de Rendimiento Relativo Normalizado (% sobre el mejor resultado por instancia)
-    # Permite comparar en una sola métrica agregada cómo se desempeñan en todas las 20 instancias
     best_per_instance = df_ops.groupby("instance")["eval"].transform("min")
     df_ops["rel_gap_pct"] = ((df_ops["eval"] - best_per_instance) / best_per_instance) * 100
 
@@ -323,16 +378,18 @@ def plot_operator_balance(df_results, output_dir):
 
     x = np.arange(len(labels))
     width = 0.38
-    ax.bar(x - width/2, gap_summary["grasp"], width, label="GRASP (Gap % Promedio)", color=COLOR_GRASP, edgecolor="black", linewidth=0.5)
-    ax.bar(x + width/2, gap_summary["random-start"], width, label="Random-Start (Gap % Promedio)", color=COLOR_RANDOM, edgecolor="black", linewidth=0.5)
+    ax.bar(x - width/2, gap_summary["grasp"], width, label="GRASP (Gap % Promedio)",
+           facecolor=COLOR_GRASP, edgecolor="black", linewidth=0.9, hatch=HATCH_GRASP)
+    ax.bar(x + width/2, gap_summary["random-start"], width, label="Random-Start (Gap % Promedio)",
+           facecolor=COLOR_RANDOM, edgecolor="black", linewidth=0.9, hatch=HATCH_RANDOM)
 
     ax.set_title("Brecha Relativa al Mejor Resultado (% Gap respecto al Óptimo Local por Instancia)\nMenor porcentaje indica mayor efectividad global", pad=12)
     ax.set_xlabel("Configuración de Parámetros (01_zero_types & 02_operator_balance)")
     ax.set_ylabel("Brecha Promedio (%) respecto al mejor")
     ax.set_xticks(x)
     ax.set_xticklabels(labels, rotation=25, ha="right")
-    ax.grid(axis="y", linestyle="--", alpha=0.4)
-    ax.legend(frameon=True)
+    ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+    ax.legend(frameon=True, edgecolor="black", facecolor="white", fancybox=False)
     plt.tight_layout()
     fig.savefig(out_dir / "operator_balance_relative_gap.png")
     plt.close(fig)
@@ -355,7 +412,7 @@ def plot_ng_differences(df_results, output_dir):
         {"n": 200, "g": 100, "label": "n=200, g=100\n(Alta exploración pop)", "short_label": "n=200, g=100"},
     ]
 
-    print("[*] Generando gráficos para 03_n_g_differences...")
+    print("[*] Generando gráficos monocromáticos para 03_n_g_differences...")
 
     sub_list = []
     for cfg in configs:
@@ -388,41 +445,48 @@ def plot_ng_differences(df_results, output_dir):
         x = np.arange(len(labels))
         width = 0.35
 
-        ax.bar(x - width/2, pivot["grasp"], width, label="GRASP", color=COLOR_GRASP, edgecolor="black", linewidth=0.5)
-        ax.bar(x + width/2, pivot["random-start"], width, label="Random-Start", color=COLOR_RANDOM, edgecolor="black", linewidth=0.5)
+        ax.bar(x - width/2, pivot["grasp"], width, label="GRASP",
+               facecolor=COLOR_GRASP, edgecolor="black", linewidth=0.9, hatch=HATCH_GRASP)
+        ax.bar(x + width/2, pivot["random-start"], width, label="Random-Start",
+               facecolor=COLOR_RANDOM, edgecolor="black", linewidth=0.9, hatch=HATCH_RANDOM)
 
         ax.set_title(f"Instancias con c = {c_val} Clientes", fontweight="bold")
         ax.set_xlabel("Presupuesto Fijo (20,000 evaluaciones totales)")
         ax.set_ylabel("Fitness Promedio (Eval)")
         ax.set_xticks(x)
         ax.set_xticklabels(labels, rotation=15, ha="right")
-        ax.grid(axis="y", linestyle="--", alpha=0.4)
-        ax.legend(loc="upper left")
+        ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+        ax.legend(loc="upper left", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
 
     fig.suptitle("Comparación de Distribución de Presupuesto (03_n_g_differences)\nPresupuesto constante: N × G = 20,000", fontsize=14, y=0.995)
     plt.tight_layout()
     fig.savefig(out_dir / "n_g_differences_by_c.png")
     plt.close(fig)
 
-    # 3.B: Gráfico de barras agrupadas comparando las 20 instancias
+    # 3.B: Gráfico de barras agrupadas comparando las 20 instancias con tramas diferenciadas
     fig, ax = plt.subplots(figsize=(15, 6), dpi=200)
     pivot_all = df_ng[df_ng["init_type"] == "grasp"].pivot_table(index="instance", columns="short_label", values="eval", aggfunc="mean")
     inst_clean = [i.replace("_new.txt", "").replace("Instance_", "") for i in pivot_all.index]
     
     x = np.arange(len(inst_clean))
     width = 0.25
-    colors = ["#2b5c8f", "#388e3c", "#d32f2f"]
+    mono_patterns = [
+        {"face": "#ffffff", "hatch": ""},
+        {"face": "#b8b8b8", "hatch": "//"},
+        {"face": "#555555", "hatch": "xx"},
+    ]
 
     for i, col in enumerate(short_labels):
-        ax.bar(x + (i - 1) * width, pivot_all[col], width, label=col, color=colors[i], edgecolor="black", linewidth=0.5)
+        ax.bar(x + (i - 1) * width, pivot_all[col], width, label=col,
+               facecolor=mono_patterns[i]["face"], edgecolor="black", linewidth=0.9, hatch=mono_patterns[i]["hatch"])
 
     ax.set_title("Comparación Detallada por Instancia (Inicio GRASP) - 03_n_g_differences", pad=12)
     ax.set_xlabel("Instancia")
     ax.set_ylabel("Fitness (Eval)")
     ax.set_xticks(x)
     ax.set_xticklabels(inst_clean, rotation=45, ha="right")
-    ax.grid(axis="y", linestyle="--", alpha=0.4)
-    ax.legend(title="Configuración", frameon=True)
+    ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+    ax.legend(title="Configuración", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
     plt.tight_layout()
     fig.savefig(out_dir / "n_g_differences_instances_grasp.png")
     plt.close(fig)
@@ -448,7 +512,7 @@ def plot_scale_differences(df_results, output_dir):
         {"n": 250, "g": 200, "evals": 50000, "label": "n=250, g=200\n(50k evals)"},
     ]
 
-    print("[*] Generando gráficos para 04_scale_differences...")
+    print("[*] Generando gráficos monocromáticos para 04_scale_differences...")
 
     sub_list = []
     for cfg in configs:
@@ -481,42 +545,48 @@ def plot_scale_differences(df_results, output_dir):
         x = np.arange(len(labels))
         width = 0.38
 
-        ax.bar(x - width/2, pivot["grasp"], width, label="GRASP", color=COLOR_GRASP, edgecolor="black", linewidth=0.5)
-        ax.bar(x + width/2, pivot["random-start"], width, label="Random-Start", color=COLOR_RANDOM, edgecolor="black", linewidth=0.5)
+        ax.bar(x - width/2, pivot["grasp"], width, label="GRASP",
+               facecolor=COLOR_GRASP, edgecolor="black", linewidth=0.9, hatch=HATCH_GRASP)
+        ax.bar(x + width/2, pivot["random-start"], width, label="Random-Start",
+               facecolor=COLOR_RANDOM, edgecolor="black", linewidth=0.9, hatch=HATCH_RANDOM)
 
         ax.set_title(f"Instancias con c = {c_val} Clientes", fontweight="bold")
         ax.set_xlabel("Escalamiento de Recursos (n, g)")
         ax.set_ylabel("Fitness Promedio (Eval)")
         ax.set_xticks(x)
         ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=8.5)
-        ax.grid(axis="y", linestyle="--", alpha=0.4)
-        ax.legend(loc="upper right")
+        ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+        ax.legend(loc="upper right", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
 
-    fig.suptitle("Impacto del Escalamiento de Recursos (04_scale_differences)\n(mut=0.2, cro=0.3)", fontsize=15, y=0.995)
+    fig.suptitle("Impacto del Escalamiento de Recursos (04_scale_differences)\n(mut=0.2, cro=0.3)", fontsize=14, y=0.995)
     plt.tight_layout()
     fig.savefig(out_dir / "scale_differences_by_c.png")
     plt.close(fig)
 
     # 4.B: Curva de convergencia por esfuerzo total (evals vs fitness promedio)
     fig, ax = plt.subplots(figsize=(10, 6), dpi=200)
-    # Normalizar fitness por instancia para poder trazar la curva agregada
     best_eval = df_scale.groupby("instance")["eval"].transform("min")
     df_scale["gap_to_best"] = ((df_scale["eval"] - best_eval) / best_eval) * 100
 
     effort_df = df_scale.groupby(["evals", "short_label", "init_type"])["gap_to_best"].mean().unstack().reset_index()
     effort_df = effort_df.sort_values("evals")
 
-    ax.plot(effort_df["evals"], effort_df["grasp"], marker="o", linewidth=2, color=COLOR_GRASP, label="GRASP (Gap % Promedio)")
-    ax.plot(effort_df["evals"], effort_df["random-start"], marker="s", linewidth=2, color=COLOR_RANDOM, label="Random-Start (Gap % Promedio)")
+    ax.plot(effort_df["evals"], effort_df["grasp"], marker="o", linewidth=1.6, color="black",
+            markerfacecolor="white", markeredgecolor="black", markeredgewidth=1.3, markersize=6.5,
+            label="GRASP (Gap % Promedio)")
+    ax.plot(effort_df["evals"], effort_df["random-start"], marker="s", linewidth=1.6, linestyle="--", color="#404040",
+            markerfacecolor="#404040", markeredgecolor="black", markeredgewidth=1.0, markersize=6.0,
+            label="Random-Start (Gap % Promedio)")
 
     for _, row in effort_df.iterrows():
-        ax.annotate(row["short_label"], (row["evals"], row["grasp"]), textcoords="offset points", xytext=(0, 10), ha="center", fontsize=8)
+        ax.annotate(row["short_label"], (row["evals"], row["grasp"]), textcoords="offset points",
+                    xytext=(0, 10), ha="center", fontsize=8, fontweight="bold")
 
     ax.set_title("Curva de Rendimiento vs Presupuesto Total de Evaluaciones", pad=12)
     ax.set_xlabel("Total de Evaluaciones de Fitness (N × G)")
     ax.set_ylabel("Brecha Promedio respecto al Mejor (%)")
-    ax.grid(True, linestyle="--", alpha=0.4)
-    ax.legend(frameon=True)
+    ax.grid(True, linestyle=":", color="#d0d0d0", alpha=0.7)
+    ax.legend(frameon=True, edgecolor="black", facecolor="white", fancybox=False)
     plt.tight_layout()
     fig.savefig(out_dir / "scale_evaluation_curve.png")
     plt.close(fig)
@@ -530,13 +600,11 @@ def plot_iterations_by_instance(df_iterations, output_dir):
        únicamente de aquellos parámetros en:
        - code/data/parameters_code/05_seeds (seeds 1 a 5)
        - code/data/parameters_code/00_reference/param_tuned_g250 (seed=-1)
-       Cada línea corresponde al avance de un parámetro distinto.
-       Genera un gráfico para cada instancia (20 instancias).
+       Cada línea corresponde al avance de un parámetro distinto en riguroso estilo B/N.
     """
     out_dir = Path(output_dir) / "05_iterations_by_instance"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Filtrar parámetros objetivo: n=200, g=250, mut=0.2, cro=0.3, seed in [-1, 1, 2, 3, 4, 5]
     seeds_target = [-1, 1, 2, 3, 4, 5]
     mask = (
         (df_iterations["n"] == 200) &
@@ -546,27 +614,24 @@ def plot_iterations_by_instance(df_iterations, output_dir):
         (df_iterations["seed"].isin(seeds_target))
     )
     df_target = df_iterations[mask].copy()
-
-    # Si hay ejecuciones duplicadas para seed=-1 (por aparecer en 00_reference y 04_scale), tomar la primera corrida de 250 iteraciones
     df_target = df_target.drop_duplicates(subset=["instance", "init_type", "seed", "i"], keep="first")
 
     instances = sorted(df_target["instance"].unique())
-    print(f"[*] Generando curvas de iteración para {len(instances)} instancias (seeds 1..5 y tuned_g250)...")
+    print(f"[*] Generando curvas de iteración monocromáticas para {len(instances)} instancias...")
 
-    # Mapeo de parámetros y estilos de línea
+    # Mapeo monocromático distinguible en impresión en blanco y negro
     param_styles = {
-        -1: {"label": "tuned_g250 (seed default -1)", "color": "#000000", "marker": "o", "ls": "-"},
-        1:  {"label": "tuned_g250_seed1", "color": "#1f77b4", "marker": "s", "ls": "-"},
-        2:  {"label": "tuned_g250_seed2", "color": "#ff7f0e", "marker": "^", "ls": "-"},
-        3:  {"label": "tuned_g250_seed3", "color": "#2ca02c", "marker": "v", "ls": "-"},
-        4:  {"label": "tuned_g250_seed4", "color": "#d62728", "marker": "D", "ls": "-"},
-        5:  {"label": "tuned_g250_seed5", "color": "#9467bd", "marker": "p", "ls": "-"},
+        -1: {"label": "tuned_g250 (seed -1)", "color": "#000000", "marker": "o", "ls": "-", "lw": 2.0, "mfc": "black", "mec": "black", "mew": 1.0, "ms": 5.5},
+        1:  {"label": "tuned_g250_seed1",     "color": "#000000", "marker": "s", "ls": "--", "lw": 1.4, "mfc": "white", "mec": "black", "mew": 1.2, "ms": 5.5},
+        2:  {"label": "tuned_g250_seed2",     "color": "#333333", "marker": "^", "ls": "-.", "lw": 1.4, "mfc": "white", "mec": "#333333", "mew": 1.2, "ms": 5.5},
+        3:  {"label": "tuned_g250_seed3",     "color": "#555555", "marker": "v", "ls": ":",  "lw": 1.6, "mfc": "#555555", "mec": "black", "mew": 1.0, "ms": 5.5},
+        4:  {"label": "tuned_g250_seed4",     "color": "#666666", "marker": "D", "ls": (0, (5, 2)), "lw": 1.4, "mfc": "white", "mec": "#666666", "mew": 1.2, "ms": 5.0},
+        5:  {"label": "tuned_g250_seed5",     "color": "#777777", "marker": "x", "ls": (0, (3, 1, 1, 1)), "lw": 1.4, "mfc": "#777777", "mec": "#777777", "mew": 1.4, "ms": 5.5},
     }
 
     for inst in instances:
         sub_inst = df_target[df_target["instance"] == inst]
 
-        # Crear figura con 2 subplots lado a lado: Panel Izquierdo (GRASP), Panel Derecho (Random-Start)
         fig, (ax_grasp, ax_rnd) = plt.subplots(1, 2, figsize=(16, 6), sharey=False, dpi=200)
 
         for init_type, ax, title_prefix in [
@@ -580,24 +645,26 @@ def plot_iterations_by_instance(df_iterations, output_dir):
                 if df_seed.empty:
                     continue
                 style = param_styles[s]
-                # Graficar línea y puntos (muestreando cada 20 iteraciones para claridad visual)
                 ax.plot(
                     df_seed["i"], df_seed["eval"],
                     label=style["label"],
                     color=style["color"],
                     linestyle=style["ls"],
-                    linewidth=1.5,
+                    linewidth=style["lw"],
                     marker=style["marker"],
-                    markevery=20,
-                    markersize=5,
-                    alpha=0.85
+                    markevery=25,
+                    markersize=style["ms"],
+                    markerfacecolor=style["mfc"],
+                    markeredgecolor=style["mec"],
+                    markeredgewidth=style["mew"],
+                    alpha=0.9
                 )
 
             ax.set_title(f"{title_prefix}", fontweight="bold", pad=10)
             ax.set_xlabel("Iteración / Generación (i)")
             ax.set_ylabel("Fitness Mejor Histórico (Eval)")
-            ax.grid(True, linestyle="--", alpha=0.35)
-            ax.legend(loc="upper right", frameon=True, fontsize=8.5)
+            ax.grid(True, linestyle=":", color="#d0d0d0", alpha=0.7)
+            ax.legend(loc="upper right", frameon=True, edgecolor="black", facecolor="white", fancybox=False, fontsize=8.5)
 
         fig.suptitle(f"Avance por Iteración - {inst}\nParámetros: 05_seeds & 00_reference/param_tuned_g250 (n=200, g=250, mut=0.2, cro=0.3)", fontsize=13, y=0.99)
         plt.tight_layout()
@@ -616,41 +683,41 @@ def plot_runtime(df_results, output_dir):
     out_dir = Path(output_dir) / "06_runtime"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    print("[*] Generando gráficos de tiempos de ejecución...")
+    print("[*] Generando gráficos monocromáticos de tiempos de ejecución...")
 
-    # Calcular estadísticas de tiempo por instancia e init_type
-    runtime_summary = df_results.groupby(["instance", "c", "init_type"])["runtime"].agg(["mean", "std"]).reset_index()
-    
-    # Ordenar instancias por c y luego por nombre
     instances_order = df_results.sort_values(by=["c", "instance"])["instance"].unique()
     clean_labels = [i.replace("_new.txt", "").replace("Instance_", "") for i in instances_order]
 
     pivot_mean = df_results.pivot_table(index="instance", columns="init_type", values="runtime", aggfunc="mean").reindex(instances_order)
     overall_mean = df_results.groupby("instance")["runtime"].mean().reindex(instances_order)
-    overall_std = df_results.groupby("instance")["runtime"].std().reindex(instances_order)
 
-    # 6.A: Gráfico de barras horizontal o vertical para las 20 instancias
+    # 6.A: Gráficos lineal y logarítmico
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(14, 10), dpi=200)
-
     x = np.arange(len(instances_order))
     width = 0.38
 
     # Panel superior: Escala lineal
-    ax1.bar(x - width/2, pivot_mean["grasp"], width, label="Media GRASP", color=COLOR_GRASP, edgecolor="black", linewidth=0.5)
-    ax1.bar(x + width/2, pivot_mean["random-start"], width, label="Media Random-Start", color=COLOR_RANDOM, edgecolor="black", linewidth=0.5)
-    ax1.plot(x, overall_mean, color="black", marker="o", linewidth=1.5, linestyle=":", label="Media Global")
+    ax1.bar(x - width/2, pivot_mean["grasp"], width, label="Media GRASP",
+            facecolor=COLOR_GRASP, edgecolor="black", linewidth=0.9, hatch=HATCH_GRASP)
+    ax1.bar(x + width/2, pivot_mean["random-start"], width, label="Media Random-Start",
+            facecolor=COLOR_RANDOM, edgecolor="black", linewidth=0.9, hatch=HATCH_RANDOM)
+    ax1.plot(x, overall_mean, color="black", marker="o", markerfacecolor="white", markeredgecolor="black",
+             markeredgewidth=1.1, linewidth=1.3, linestyle=":", label="Media Global")
 
     ax1.set_title("Tiempo de Ejecución Promedio por Instancia (Escala Lineal)", pad=10)
     ax1.set_ylabel("Tiempo de Ejecución (segundos)")
     ax1.set_xticks(x)
     ax1.set_xticklabels(clean_labels, rotation=45, ha="right")
-    ax1.grid(axis="y", linestyle="--", alpha=0.4)
-    ax1.legend(loc="upper left")
+    ax1.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+    ax1.legend(loc="upper left", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
 
-    # Panel inferior: Escala logarítmica (para distinguir con claridad las instancias pequeñas c=10, 50)
-    ax2.bar(x - width/2, pivot_mean["grasp"], width, label="Media GRASP", color=COLOR_GRASP, edgecolor="black", linewidth=0.5)
-    ax2.bar(x + width/2, pivot_mean["random-start"], width, label="Media Random-Start", color=COLOR_RANDOM, edgecolor="black", linewidth=0.5)
-    ax2.plot(x, overall_mean, color="black", marker="o", linewidth=1.5, linestyle=":", label="Media Global")
+    # Panel inferior: Escala logarítmica
+    ax2.bar(x - width/2, pivot_mean["grasp"], width, label="Media GRASP",
+            facecolor=COLOR_GRASP, edgecolor="black", linewidth=0.9, hatch=HATCH_GRASP)
+    ax2.bar(x + width/2, pivot_mean["random-start"], width, label="Media Random-Start",
+            facecolor=COLOR_RANDOM, edgecolor="black", linewidth=0.9, hatch=HATCH_RANDOM)
+    ax2.plot(x, overall_mean, color="black", marker="o", markerfacecolor="white", markeredgecolor="black",
+             markeredgewidth=1.1, linewidth=1.3, linestyle=":", label="Media Global")
 
     ax2.set_yscale("log")
     ax2.set_title("Tiempo de Ejecución Promedio por Instancia (Escala Logarítmica)", pad=10)
@@ -658,27 +725,28 @@ def plot_runtime(df_results, output_dir):
     ax2.set_ylabel("Tiempo de Ejecución (s, log scale)")
     ax2.set_xticks(x)
     ax2.set_xticklabels(clean_labels, rotation=45, ha="right")
-    ax2.grid(axis="y", which="both", linestyle="--", alpha=0.3)
-    ax2.legend(loc="upper left")
+    ax2.grid(axis="y", which="both", linestyle=":", color="#d0d0d0", alpha=0.7)
+    ax2.legend(loc="upper left", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
 
-    # Líneas divisorias visuales entre grupos de c
     for div_pos in [4.5, 9.5, 14.5]:
-        ax1.axvline(div_pos, color="gray", linestyle="-.", alpha=0.6)
-        ax2.axvline(div_pos, color="gray", linestyle="-.", alpha=0.6)
+        ax1.axvline(div_pos, color="#777777", linestyle="--", linewidth=0.8)
+        ax2.axvline(div_pos, color="#777777", linestyle="--", linewidth=0.8)
 
     fig.suptitle("Comparación de Tiempo de Ejecución por Instancia (Runtime Promedio)", fontsize=14, y=0.995)
     plt.tight_layout()
     fig.savefig(out_dir / "runtime_by_instance.png")
     plt.close(fig)
 
-    # 6.B: Gráfico por tamaño de clientes c in [10, 50, 100, 200]
+    # 6.B: Gráfico por tamaño de clientes c
     fig, ax = plt.subplots(figsize=(8, 5), dpi=200)
     c_runtime = df_results.groupby(["c", "init_type"])["runtime"].mean().unstack()
     c_labels = [f"c = {c}" for c in c_runtime.index]
     x_c = np.arange(len(c_labels))
 
-    ax.bar(x_c - width/2, c_runtime["grasp"], width, label="GRASP", color=COLOR_GRASP, edgecolor="black", linewidth=0.5)
-    ax.bar(x_c + width/2, c_runtime["random-start"], width, label="Random-Start", color=COLOR_RANDOM, edgecolor="black", linewidth=0.5)
+    ax.bar(x_c - width/2, c_runtime["grasp"], width, label="GRASP",
+           facecolor=COLOR_GRASP, edgecolor="black", linewidth=0.9, hatch=HATCH_GRASP)
+    ax.bar(x_c + width/2, c_runtime["random-start"], width, label="Random-Start",
+           facecolor=COLOR_RANDOM, edgecolor="black", linewidth=0.9, hatch=HATCH_RANDOM)
 
     for i in x_c:
         vg = c_runtime.loc[c_runtime.index[i], "grasp"]
@@ -691,8 +759,8 @@ def plot_runtime(df_results, output_dir):
     ax.set_ylabel("Tiempo Promedio (segundos)")
     ax.set_xticks(x_c)
     ax.set_xticklabels(c_labels)
-    ax.grid(axis="y", linestyle="--", alpha=0.4)
-    ax.legend()
+    ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+    ax.legend(frameon=True, edgecolor="black", facecolor="white", fancybox=False)
     plt.tight_layout()
     fig.savefig(out_dir / "runtime_by_client_size.png")
     plt.close(fig)
@@ -702,14 +770,16 @@ def plot_runtime(df_results, output_dir):
 
 def plot_boxplots(df_results, output_dir):
     """
-    Caso B: Diagramas de Cajas y Violín (Boxplots / Violin Plots)
-    Evalúa la dispersión y estabilidad estocástica de los resultados:
-    1. Dispersión de semillas (05_seeds) comparando GRASP vs Random-Start.
-    2. Dispersión de la brecha relativa (% Gap) para configuraciones de operadores (01 y 02).
+    Caso B: Diagramas de Cajas (Boxplots) en Estilo Académico / R base.
+    Evalúa la dispersión y estabilidad estocástica de los resultados con:
+    - Cajas monocromáticas (blanco y gris con tramas),
+    - Mediana gruesa sólida negra,
+    - Media punteada negra (opcional académica),
+    - Bigotes a trazos y valores atípicos (outliers) como círculos abiertos (pch=1).
     """
     out_dir = Path(output_dir) / "07_boxplots"
     out_dir.mkdir(parents=True, exist_ok=True)
-    print("[*] Generando diagramas de cajas (Caso B: Boxplots)...")
+    print("[*] Generando diagramas de cajas estilo R base / Elsevier (Caso B: Boxplots)...")
 
     # Calcular Brecha Relativa (% Gap respecto al mejor por instancia)
     df = df_results.copy()
@@ -729,7 +799,6 @@ def plot_boxplots(df_results, output_dir):
     c_sizes = [10, 50, 100, 200]
     positions = []
     data_to_plot = []
-    colors = []
 
     pos = 1
     for c_val in c_sizes:
@@ -739,73 +808,65 @@ def plot_boxplots(df_results, output_dir):
 
         data_to_plot.append(grasp_vals)
         positions.append(pos)
-        colors.append(COLOR_GRASP)
 
         data_to_plot.append(rnd_vals)
         positions.append(pos + 0.8)
-        colors.append(COLOR_RANDOM)
 
         pos += 2.5
 
-    bp = ax.boxplot(data_to_plot, positions=positions, widths=0.6, patch_artist=True, showmeans=True, meanline=True)
+    bp = ax.boxplot(data_to_plot, positions=positions, widths=0.6, **BOXPLOT_KWARGS)
 
-    for patch, col in zip(bp['boxes'], colors):
-        patch.set_facecolor(col)
-        patch.set_alpha(0.7)
-    for median in bp['medians']:
-        median.set_color("black")
-        median.set_linewidth(1.5)
-    for mean in bp['means']:
-        mean.set_color("red")
-        mean.set_linewidth(1.5)
+    for idx_box, patch in enumerate(bp['boxes']):
+        if idx_box % 2 == 0:
+            patch.set_facecolor(COLOR_GRASP)
+            patch.set_hatch(HATCH_GRASP)
+        else:
+            patch.set_facecolor(COLOR_RANDOM)
+            patch.set_hatch(HATCH_RANDOM)
+        patch.set_edgecolor("black")
+        patch.set_linewidth(1.1)
 
-    ax.set_title("Dispersión entre Semillas (05_seeds) según Tamaño de Instancia (Boxplot)\nComparación de Robustez: GRASP vs Random-Start", pad=12)
+    ax.set_title("Dispersión entre Semillas (05_seeds) según Tamaño de Instancia\nComparación de Robustez: GRASP vs Random-Start", pad=12)
     ax.set_xlabel("Tamaño de Problema (c)")
     ax.set_ylabel("Brecha respecto al Mejor (% Gap)")
     xticks = [1.4 + i * 2.5 for i in range(len(c_sizes))]
     ax.set_xticks(xticks)
     ax.set_xticklabels([f"c = {c}" for c in c_sizes])
-    ax.grid(axis="y", linestyle="--", alpha=0.4)
+    ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
 
-    # Leyenda personalizada
-    from matplotlib.patches import Patch
-    from matplotlib.lines import Line2D
+    # Leyenda formal clásica
     legend_elements = [
-        Patch(facecolor=COLOR_GRASP, alpha=0.7, label="GRASP (seeds 1..5)"),
-        Patch(facecolor=COLOR_RANDOM, alpha=0.7, label="Random-Start (seeds 1..5)"),
-        Line2D([0], [0], color="black", lw=1.5, label="Mediana"),
-        Line2D([0], [0], color="red", lw=1.5, linestyle="--", label="Media")
+        Patch(facecolor=COLOR_GRASP, edgecolor="black", label="GRASP (seeds 1..5)"),
+        Patch(facecolor=COLOR_RANDOM, edgecolor="black", hatch=HATCH_RANDOM, label="Random-Start (seeds 1..5)"),
+        Line2D([0], [0], color="black", lw=2.0, label="Mediana"),
+        Line2D([0], [0], color="black", lw=1.4, linestyle=":", label="Media")
     ]
-    ax.legend(handles=legend_elements, loc="upper left")
+    ax.legend(handles=legend_elements, loc="upper left", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
     plt.tight_layout()
     fig.savefig(out_dir / "boxplot_seeds_dispersion_by_c.png")
     plt.close(fig)
 
     # B.1.a y B.1.b: Gráficos de 05_seeds separados para GRASP y Random-Start
-    for init_t, col, label_t, suffix in [
-        ("grasp", COLOR_GRASP, "Inicio GRASP", "grasp"),
-        ("random-start", COLOR_RANDOM, "Inicio Aleatorio", "randomstart")
+    for init_t, col, hatch_t, label_t, suffix in [
+        ("grasp", COLOR_GRASP, HATCH_GRASP, "Inicio GRASP", "grasp"),
+        ("random-start", COLOR_RANDOM, HATCH_RANDOM, "Inicio Aleatorio", "randomstart")
     ]:
         fig, ax = plt.subplots(figsize=(8, 5), dpi=200)
         c_data = [df_seeds[(df_seeds["c"] == c) & (df_seeds["init_type"] == init_t)]["gap_pct"].dropna() for c in c_sizes]
-        bp = ax.boxplot(c_data, positions=range(1, len(c_sizes) + 1), widths=0.5, patch_artist=True, showmeans=True, meanline=True)
+        bp = ax.boxplot(c_data, positions=range(1, len(c_sizes) + 1), widths=0.5, **BOXPLOT_KWARGS)
         for patch in bp['boxes']:
             patch.set_facecolor(col)
-            patch.set_alpha(0.7)
-        for median in bp['medians']:
-            median.set_color("black")
-            median.set_linewidth(1.5)
-        for mean in bp['means']:
-            mean.set_color("red")
-            mean.set_linewidth(1.5)
+            patch.set_hatch(hatch_t)
+            patch.set_edgecolor("black")
+            patch.set_linewidth(1.1)
 
         ax.set_title(f"Dispersión entre Semillas (05_seeds) - {label_t}\n(n=200, g=250, mut=0.2, cro=0.3)", pad=12)
         ax.set_xlabel("Tamaño de Problema (c)")
         ax.set_ylabel("Brecha respecto al Mejor (% Gap)")
         ax.set_xticks(range(1, len(c_sizes) + 1))
         ax.set_xticklabels([f"c = {c}" for c in c_sizes])
-        ax.grid(axis="y", linestyle="--", alpha=0.4)
-        ax.legend(handles=legend_elements[2:], loc="upper right")
+        ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+        ax.legend(handles=legend_elements[2:], loc="upper right", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
         plt.tight_layout()
         fig.savefig(out_dir / f"boxplot_seeds_dispersion_by_c_{suffix}.png")
         plt.close(fig)
@@ -839,7 +900,6 @@ def plot_boxplots(df_results, output_dir):
     op_labels = [c["label"] for c in configs_ops]
     positions = []
     data_to_plot = []
-    colors = []
 
     pos = 1
     for lbl in op_labels:
@@ -849,24 +909,22 @@ def plot_boxplots(df_results, output_dir):
 
         data_to_plot.append(grasp_vals)
         positions.append(pos)
-        colors.append(COLOR_GRASP)
 
         data_to_plot.append(rnd_vals)
         positions.append(pos + 0.7)
-        colors.append(COLOR_RANDOM)
 
         pos += 2.2
 
-    bp = ax.boxplot(data_to_plot, positions=positions, widths=0.55, patch_artist=True, showmeans=True, meanline=True)
-    for patch, col in zip(bp['boxes'], colors):
-        patch.set_facecolor(col)
-        patch.set_alpha(0.7)
-    for median in bp['medians']:
-        median.set_color("black")
-        median.set_linewidth(1.5)
-    for mean in bp['means']:
-        mean.set_color("red")
-        mean.set_linewidth(1.5)
+    bp = ax.boxplot(data_to_plot, positions=positions, widths=0.55, **BOXPLOT_KWARGS)
+    for idx_box, patch in enumerate(bp['boxes']):
+        if idx_box % 2 == 0:
+            patch.set_facecolor(COLOR_GRASP)
+            patch.set_hatch(HATCH_GRASP)
+        else:
+            patch.set_facecolor(COLOR_RANDOM)
+            patch.set_hatch(HATCH_RANDOM)
+        patch.set_edgecolor("black")
+        patch.set_linewidth(1.1)
 
     ax.set_title("Dispersión y Estabilidad de Operadores (01_zero_types & 02_operator_balance)\nDistribución de % Gap sobre las 20 Instancias", pad=12)
     ax.set_xlabel("Configuración de Operadores")
@@ -874,37 +932,33 @@ def plot_boxplots(df_results, output_dir):
     xticks = [1.35 + i * 2.2 for i in range(len(op_labels))]
     ax.set_xticks(xticks)
     ax.set_xticklabels(op_labels)
-    ax.grid(axis="y", linestyle="--", alpha=0.4)
-    ax.legend(handles=legend_elements[:2], loc="upper right")
+    ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+    ax.legend(handles=legend_elements, loc="upper right", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
     plt.tight_layout()
     fig.savefig(out_dir / "boxplot_operators_relative_gap.png")
     plt.close(fig)
 
     # B.2.a y B.2.b: Gráficos de operadores separados para GRASP y Random-Start
-    for init_t, col, label_t, suffix in [
-        ("grasp", COLOR_GRASP, "Inicio GRASP", "grasp"),
-        ("random-start", COLOR_RANDOM, "Inicio Aleatorio", "randomstart")
+    for init_t, col, hatch_t, label_t, suffix in [
+        ("grasp", COLOR_GRASP, HATCH_GRASP, "Inicio GRASP", "grasp"),
+        ("random-start", COLOR_RANDOM, HATCH_RANDOM, "Inicio Aleatorio", "randomstart")
     ]:
         fig, ax = plt.subplots(figsize=(10, 5), dpi=200)
         op_data = [df_op_sub[(df_op_sub["param_label"] == lbl) & (df_op_sub["init_type"] == init_t)]["gap_pct"].dropna() for lbl in op_labels]
-        bp = ax.boxplot(op_data, positions=range(1, len(op_labels) + 1), widths=0.5, patch_artist=True, showmeans=True, meanline=True)
+        bp = ax.boxplot(op_data, positions=range(1, len(op_labels) + 1), widths=0.5, **BOXPLOT_KWARGS)
         for patch in bp['boxes']:
             patch.set_facecolor(col)
-            patch.set_alpha(0.7)
-        for median in bp['medians']:
-            median.set_color("black")
-            median.set_linewidth(1.5)
-        for mean in bp['means']:
-            mean.set_color("red")
-            mean.set_linewidth(1.5)
+            patch.set_hatch(hatch_t)
+            patch.set_edgecolor("black")
+            patch.set_linewidth(1.1)
 
         ax.set_title(f"Dispersión de Operadores (01 & 02) - {label_t}\nDistribución de % Gap sobre las 20 Instancias", pad=12)
         ax.set_xlabel("Configuración de Operadores")
         ax.set_ylabel("Brecha respecto al Mejor (% Gap)")
         ax.set_xticks(range(1, len(op_labels) + 1))
         ax.set_xticklabels(op_labels)
-        ax.grid(axis="y", linestyle="--", alpha=0.4)
-        ax.legend(handles=legend_elements[2:], loc="upper right")
+        ax.grid(axis="y", linestyle=":", color="#d0d0d0", alpha=0.7)
+        ax.legend(handles=legend_elements[2:], loc="upper right", frameon=True, edgecolor="black", facecolor="white", fancybox=False)
         plt.tight_layout()
         fig.savefig(out_dir / f"boxplot_operators_relative_gap_{suffix}.png")
         plt.close(fig)
@@ -917,11 +971,11 @@ def plot_tradeoff_quality_runtime(df_results, output_dir):
     Caso C: Frente de Trade-off (Calidad vs. Tiempo de Ejecución).
     Eje X: Runtime promedio (segundos, escala logarítmica).
     Eje Y: Calidad promedio (% Gap respecto al mejor por instancia).
-    Traza el frente de Pareto de soluciones no dominadas.
+    Traza el frente de Pareto monocromático de soluciones no dominadas.
     """
     out_dir = Path(output_dir) / "08_tradeoff_quality_runtime"
     out_dir.mkdir(parents=True, exist_ok=True)
-    print("[*] Generando frentes de Trade-off Calidad vs Tiempo (Caso C)...")
+    print("[*] Generando frentes de Trade-off monocromáticos (Caso C: Pareto)...")
 
     df = df_results.copy()
     best_per_inst = df.groupby("instance")["eval"].transform("min")
@@ -935,12 +989,13 @@ def plot_tradeoff_quality_runtime(df_results, output_dir):
 
     fig, ax = plt.subplots(figsize=(11, 7), dpi=200)
 
-    for init_type, color, marker, label_name in [
-        ("grasp", COLOR_GRASP, "o", "GRASP"),
-        ("random-start", COLOR_RANDOM, "s", "Random-Start")
+    for init_type, m_face, m_shape, m_size, ls_style, label_name in [
+        ("grasp", "white", "o", 55, "-", "GRASP"),
+        ("random-start", "#555555", "s", 50, "--", "Random-Start")
     ]:
         sub = summary[summary["init_type"] == init_type].sort_values("mean_time")
-        ax.scatter(sub["mean_time"], sub["mean_gap"], color=color, marker=marker, s=60, alpha=0.75, edgecolor="black", linewidth=0.5, label=f"Configuraciones {label_name}")
+        ax.scatter(sub["mean_time"], sub["mean_gap"], facecolor=m_face, edgecolor="black",
+                   marker=m_shape, s=m_size, linewidth=1.1, label=f"Configuraciones {label_name}")
 
         # Calcular y trazar Frontera de Pareto
         pts = sub[["mean_time", "mean_gap"]].values
@@ -953,9 +1008,11 @@ def plot_tradeoff_quality_runtime(df_results, output_dir):
                 min_gap_seen = y_val
 
         if pareto_x:
-            ax.step(pareto_x, pareto_y, where="post", color=color, linestyle="--", linewidth=1.8, alpha=0.9, label=f"Frontera Pareto ({label_name})")
+            line_color = "black" if init_type == "grasp" else "#555555"
+            ax.step(pareto_x, pareto_y, where="post", color=line_color, linestyle=ls_style,
+                    linewidth=1.8, label=f"Frontera Pareto ({label_name})")
 
-    # Anotar configuraciones destacadas en la frontera Pareto de GRASP
+    # Anotar configuraciones destacadas en la frontera Pareto de GRASP con recuadros académicos
     grasp_sub = summary[summary["init_type"] == "grasp"].sort_values("mean_time")
     min_g = float("inf")
     for _, row in grasp_sub.iterrows():
@@ -969,28 +1026,29 @@ def plot_tradeoff_quality_runtime(df_results, output_dir):
                 textcoords="offset points",
                 fontsize=7.5,
                 fontweight="bold",
-                bbox=dict(boxstyle="round,pad=0.2", fc="white", ec=COLOR_GRASP, lw=1),
-                arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0", color=COLOR_GRASP)
+                bbox=dict(boxstyle="square,pad=0.25", fc="white", ec="black", lw=0.9),
+                arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0", color="black", lw=0.8)
             )
 
     ax.set_xscale("log")
     ax.set_title("Trade-off: Calidad vs. Tiempo de Cómputo (Frontera de Pareto)\nCompromiso entre Esfuerzo de CPU y Proximidad al Óptimo", pad=12)
     ax.set_xlabel("Tiempo Medio de Ejecución (segundos, escala logarítmica)")
     ax.set_ylabel("Brecha Promedio respecto al Mejor (% Gap)")
-    ax.grid(True, which="both", linestyle="--", alpha=0.35)
-    ax.legend(frameon=True, loc="upper right")
+    ax.grid(True, which="both", linestyle=":", color="#d0d0d0", alpha=0.7)
+    ax.legend(frameon=True, edgecolor="black", facecolor="white", fancybox=False, loc="upper right")
     plt.tight_layout()
     fig.savefig(out_dir / "pareto_tradeoff_all_configs.png")
     plt.close(fig)
 
     # C.1.a y C.1.b: Gráficos de Pareto individuales para GRASP y Random-Start
-    for init_type, color, marker, label_name, suffix in [
-        ("grasp", COLOR_GRASP, "o", "Inicio GRASP", "grasp"),
-        ("random-start", COLOR_RANDOM, "s", "Inicio Aleatorio", "randomstart")
+    for init_type, m_face, m_shape, m_size, ls_style, line_col, label_name, suffix in [
+        ("grasp", "white", "o", 60, "-", "black", "Inicio GRASP", "grasp"),
+        ("random-start", "#555555", "s", 55, "--", "#555555", "Inicio Aleatorio", "randomstart")
     ]:
         fig, ax = plt.subplots(figsize=(9, 6), dpi=200)
         sub = summary[summary["init_type"] == init_type].sort_values("mean_time")
-        ax.scatter(sub["mean_time"], sub["mean_gap"], color=color, marker=marker, s=65, alpha=0.8, edgecolor="black", linewidth=0.5, label=f"Configuraciones ({label_name})")
+        ax.scatter(sub["mean_time"], sub["mean_gap"], facecolor=m_face, edgecolor="black",
+                   marker=m_shape, s=m_size, linewidth=1.1, label=f"Configuraciones ({label_name})")
 
         pts = sub[["mean_time", "mean_gap"]].values
         pareto_x, pareto_y = [], []
@@ -1002,7 +1060,8 @@ def plot_tradeoff_quality_runtime(df_results, output_dir):
                 min_gap_seen = y_val
 
         if pareto_x:
-            ax.step(pareto_x, pareto_y, where="post", color=color, linestyle="--", linewidth=1.8, alpha=0.9, label=f"Frontera Pareto ({label_name})")
+            ax.step(pareto_x, pareto_y, where="post", color=line_col, linestyle=ls_style,
+                    linewidth=1.8, label=f"Frontera Pareto ({label_name})")
 
         min_g = float("inf")
         for _, row in sub.iterrows():
@@ -1016,16 +1075,16 @@ def plot_tradeoff_quality_runtime(df_results, output_dir):
                     textcoords="offset points",
                     fontsize=7.5,
                     fontweight="bold",
-                    bbox=dict(boxstyle="round,pad=0.2", fc="white", ec=color, lw=1),
-                    arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0", color=color)
+                    bbox=dict(boxstyle="square,pad=0.25", fc="white", ec="black", lw=0.9),
+                    arrowprops=dict(arrowstyle="->", connectionstyle="arc3,rad=0", color="black", lw=0.8)
                 )
 
         ax.set_xscale("log")
         ax.set_title(f"Frente de Trade-off (Calidad vs. Tiempo) - {label_name}", pad=12)
         ax.set_xlabel("Tiempo Medio de Ejecución (segundos, escala logarítmica)")
         ax.set_ylabel("Brecha Promedio respecto al Mejor (% Gap)")
-        ax.grid(True, which="both", linestyle="--", alpha=0.35)
-        ax.legend(frameon=True, loc="upper right")
+        ax.grid(True, which="both", linestyle=":", color="#d0d0d0", alpha=0.7)
+        ax.legend(frameon=True, edgecolor="black", facecolor="white", fancybox=False, loc="upper right")
         plt.tight_layout()
         fig.savefig(out_dir / f"pareto_tradeoff_all_configs_{suffix}.png")
         plt.close(fig)
@@ -1038,42 +1097,46 @@ def plot_tradeoff_quality_runtime(df_results, output_dir):
     ).reset_index()
 
     fig, ax = plt.subplots(figsize=(10, 6), dpi=200)
-    for init_type, color, marker, label_name in [
-        ("grasp", COLOR_GRASP, "o", "GRASP"),
-        ("random-start", COLOR_RANDOM, "s", "Random-Start")
+    for init_type, m_face, m_shape, ls_style, line_col, label_name in [
+        ("grasp", "white", "o", "-", "black", "GRASP"),
+        ("random-start", "#555555", "s", "--", "#555555", "Random-Start")
     ]:
         sub = sum_budget[sum_budget["init_type"] == init_type].sort_values("mean_time")
-        ax.plot(sub["mean_time"], sub["mean_gap"], marker=marker, color=color, linewidth=1.8, markersize=7, label=label_name)
+        ax.plot(sub["mean_time"], sub["mean_gap"], marker=m_shape, color=line_col,
+                markerfacecolor=m_face, markeredgecolor="black", markeredgewidth=1.1,
+                linewidth=1.6, markersize=7, linestyle=ls_style, label=label_name)
         for _, row in sub.iterrows():
             ax.annotate(f"n={int(row['n'])}, g={int(row['g'])}", (row["mean_time"], row["mean_gap"]),
-                        xytext=(5, 5), textcoords="offset points", fontsize=8)
+                        xytext=(5, 5), textcoords="offset points", fontsize=8, fontweight="bold")
 
     ax.set_title("Curva de Escalamiento: Tiempo de Cómputo vs Calidad (% Gap)\n(Parámetros de 03_n_g_differences y 04_scale_differences)", pad=12)
     ax.set_xlabel("Tiempo Promedio (segundos)")
     ax.set_ylabel("Brecha Promedio respecto al Mejor (% Gap)")
-    ax.grid(True, linestyle="--", alpha=0.4)
-    ax.legend()
+    ax.grid(True, linestyle=":", color="#d0d0d0", alpha=0.7)
+    ax.legend(frameon=True, edgecolor="black", facecolor="white", fancybox=False)
     plt.tight_layout()
     fig.savefig(out_dir / "pareto_tradeoff_budget_scale.png")
     plt.close(fig)
 
     # C.2.a y C.2.b: Curva de escalamiento individual para GRASP y Random-Start
-    for init_type, color, marker, label_name, suffix in [
-        ("grasp", COLOR_GRASP, "o", "Inicio GRASP", "grasp"),
-        ("random-start", COLOR_RANDOM, "s", "Inicio Aleatorio", "randomstart")
+    for init_type, m_face, m_shape, ls_style, line_col, label_name, suffix in [
+        ("grasp", "white", "o", "-", "black", "Inicio GRASP", "grasp"),
+        ("random-start", "#555555", "s", "--", "#555555", "Inicio Aleatorio", "randomstart")
     ]:
         fig, ax = plt.subplots(figsize=(8, 5), dpi=200)
         sub = sum_budget[sum_budget["init_type"] == init_type].sort_values("mean_time")
-        ax.plot(sub["mean_time"], sub["mean_gap"], marker=marker, color=color, linewidth=2.0, markersize=8, label=label_name)
+        ax.plot(sub["mean_time"], sub["mean_gap"], marker=m_shape, color=line_col,
+                markerfacecolor=m_face, markeredgecolor="black", markeredgewidth=1.1,
+                linewidth=1.8, markersize=7.5, linestyle=ls_style, label=label_name)
         for _, row in sub.iterrows():
             ax.annotate(f"n={int(row['n'])}, g={int(row['g'])}", (row["mean_time"], row["mean_gap"]),
-                        xytext=(5, 5), textcoords="offset points", fontsize=8)
+                        xytext=(5, 5), textcoords="offset points", fontsize=8, fontweight="bold")
 
         ax.set_title(f"Curva de Escalamiento (Tiempo vs Calidad) - {label_name}", pad=12)
         ax.set_xlabel("Tiempo Promedio (segundos)")
         ax.set_ylabel("Brecha Promedio respecto al Mejor (% Gap)")
-        ax.grid(True, linestyle="--", alpha=0.4)
-        ax.legend()
+        ax.grid(True, linestyle=":", color="#d0d0d0", alpha=0.7)
+        ax.legend(frameon=True, edgecolor="black", facecolor="white", fancybox=False)
         plt.tight_layout()
         fig.savefig(out_dir / f"pareto_tradeoff_budget_scale_{suffix}.png")
         plt.close(fig)
@@ -1083,14 +1146,15 @@ def plot_tradeoff_quality_runtime(df_results, output_dir):
 
 def plot_heatmaps(df_results, output_dir):
     """
-    Caso D: Mapas de Calor (Heatmaps) de Interacción de Parámetros.
-    Genera matrices bidimensionales con código de color representando la brecha relativa promedio (% Gap):
+    Caso D: Mapas de Calor (Heatmaps) en Escala de Grises Académica.
+    Genera matrices bidimensionales con gradiente en escala de grises (gray_r)
+    donde el blanco representa la mejor calidad (menor gap) y tonos oscuros mayor gap:
     1. Interacción de Operadores (p_mut vs p_cro).
     2. Interacción de Tamaño de Población (N) vs Generaciones (G).
     """
     out_dir = Path(output_dir) / "09_heatmaps"
     out_dir.mkdir(parents=True, exist_ok=True)
-    print("[*] Generando mapas de calor de parámetros (Caso D: Heatmaps)...")
+    print("[*] Generando mapas de calor en escala de grises (Caso D: Heatmaps)...")
 
     df = df_results.copy()
     best_per_inst = df.groupby("instance")["eval"].transform("min")
@@ -1098,7 +1162,6 @@ def plot_heatmaps(df_results, output_dir):
 
     # D.1: Heatmap de Operadores (p_mut vs p_cro)
     df_ops = df[(df["n"] == 200) & (df["g"] == 200) & (df["seed"] == -1)].copy()
-
     mut_vals = sorted(df_ops["p_mut"].round(2).unique())
     cro_vals = sorted(df_ops["p_cro"].round(2).unique())
 
@@ -1115,11 +1178,12 @@ def plot_heatmaps(df_results, output_dir):
         matrix_data = pivot.values
         masked_data = np.ma.masked_invalid(matrix_data)
 
-        cmap = plt.get_cmap("YlGnBu_r").copy()
+        cmap = plt.get_cmap("gray_r").copy()
         cmap.set_bad(color="#eeeeee")
 
+        vmax_val = np.nanmax(df_ops["gap_pct"]) * 0.75
         im = ax.imshow(masked_data, cmap=cmap, aspect="auto", origin="lower",
-                       vmin=0, vmax=np.nanmax(df_ops["gap_pct"]) * 0.7)
+                       vmin=0, vmax=vmax_val)
 
         ax.set_xticks(range(len(cro_vals)))
         ax.set_xticklabels([f"{c:.1f}" for c in cro_vals])
@@ -1129,17 +1193,25 @@ def plot_heatmaps(df_results, output_dir):
         ax.set_ylabel("Probabilidad de Mutación (p_mut)")
         ax.set_title(title, fontweight="bold", pad=10)
 
+        # Líneas de cuadrícula sutiles separando celdas
+        ax.set_xticks(np.arange(-.5, len(cro_vals), 1), minor=True)
+        ax.set_yticks(np.arange(-.5, len(mut_vals), 1), minor=True)
+        ax.grid(which="minor", color="white", linestyle="-", linewidth=1.5)
+        ax.tick_params(which="minor", bottom=False, left=False)
+
         for r in range(len(mut_vals)):
             for c in range(len(cro_vals)):
                 val = matrix_data[r, c]
                 if not np.isnan(val):
-                    txt_color = "white" if val > 15 else "black"
+                    txt_color = "white" if val > (vmax_val * 0.5) else "black"
                     ax.text(c, r, f"{val:.1f}%", ha="center", va="center", color=txt_color, fontsize=9, fontweight="bold")
                 else:
-                    ax.text(c, r, "-", ha="center", va="center", color="#999999")
+                    ax.text(c, r, "-", ha="center", va="center", color="#777777")
 
         cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label("Brecha Promedio (% Gap)")
+        cbar.outline.set_edgecolor("black")
+        cbar.outline.set_linewidth(0.8)
+        cbar.set_label("Brecha Promedio (% Gap)", fontweight="bold")
 
     fig.suptitle("Mapa de Calor: Interacción de Probabilidades de Mutación y Cruce\n(Menor % indica mejor rendimiento global)", fontsize=14, y=0.99)
     plt.tight_layout()
@@ -1159,11 +1231,12 @@ def plot_heatmaps(df_results, output_dir):
         matrix_data = pivot.values
         masked_data = np.ma.masked_invalid(matrix_data)
 
-        cmap = plt.get_cmap("YlGnBu_r").copy()
+        cmap = plt.get_cmap("gray_r").copy()
         cmap.set_bad(color="#eeeeee")
 
+        vmax_val = np.nanmax(df_ops["gap_pct"]) * 0.75
         im = ax.imshow(masked_data, cmap=cmap, aspect="auto", origin="lower",
-                       vmin=0, vmax=np.nanmax(df_ops["gap_pct"]) * 0.7)
+                       vmin=0, vmax=vmax_val)
 
         ax.set_xticks(range(len(cro_vals)))
         ax.set_xticklabels([f"{c:.1f}" for c in cro_vals])
@@ -1173,17 +1246,24 @@ def plot_heatmaps(df_results, output_dir):
         ax.set_ylabel("Probabilidad de Mutación (p_mut)")
         ax.set_title(title, fontweight="bold", pad=12)
 
+        ax.set_xticks(np.arange(-.5, len(cro_vals), 1), minor=True)
+        ax.set_yticks(np.arange(-.5, len(mut_vals), 1), minor=True)
+        ax.grid(which="minor", color="white", linestyle="-", linewidth=1.5)
+        ax.tick_params(which="minor", bottom=False, left=False)
+
         for r in range(len(mut_vals)):
             for c in range(len(cro_vals)):
                 val = matrix_data[r, c]
                 if not np.isnan(val):
-                    txt_color = "white" if val > 15 else "black"
+                    txt_color = "white" if val > (vmax_val * 0.5) else "black"
                     ax.text(c, r, f"{val:.1f}%", ha="center", va="center", color=txt_color, fontsize=9.5, fontweight="bold")
                 else:
-                    ax.text(c, r, "-", ha="center", va="center", color="#999999")
+                    ax.text(c, r, "-", ha="center", va="center", color="#777777")
 
         cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label("Brecha Promedio (% Gap)")
+        cbar.outline.set_edgecolor("black")
+        cbar.outline.set_linewidth(0.8)
+        cbar.set_label("Brecha Promedio (% Gap)", fontweight="bold")
         plt.tight_layout()
         fig.savefig(out_dir / f"heatmap_operators_mut_vs_cro_{suffix}.png")
         plt.close(fig)
@@ -1206,11 +1286,12 @@ def plot_heatmaps(df_results, output_dir):
         matrix_data = pivot.values
         masked_data = np.ma.masked_invalid(matrix_data)
 
-        cmap = plt.get_cmap("YlGnBu_r").copy()
+        cmap = plt.get_cmap("gray_r").copy()
         cmap.set_bad(color="#eeeeee")
 
+        vmax_val = np.nanmax(df_ng["gap_pct"]) * 0.75
         im = ax.imshow(masked_data, cmap=cmap, aspect="auto", origin="lower",
-                       vmin=0, vmax=np.nanmax(df_ng["gap_pct"]) * 0.7)
+                       vmin=0, vmax=vmax_val)
 
         ax.set_xticks(range(len(g_vals)))
         ax.set_xticklabels([f"g={g}" for g in g_vals])
@@ -1220,17 +1301,24 @@ def plot_heatmaps(df_results, output_dir):
         ax.set_ylabel("Población (n - Exploración)")
         ax.set_title(title, fontweight="bold", pad=10)
 
+        ax.set_xticks(np.arange(-.5, len(g_vals), 1), minor=True)
+        ax.set_yticks(np.arange(-.5, len(n_vals), 1), minor=True)
+        ax.grid(which="minor", color="white", linestyle="-", linewidth=1.5)
+        ax.tick_params(which="minor", bottom=False, left=False)
+
         for r in range(len(n_vals)):
             for c in range(len(g_vals)):
                 val = matrix_data[r, c]
                 if not np.isnan(val):
-                    txt_color = "white" if val > 15 else "black"
+                    txt_color = "white" if val > (vmax_val * 0.5) else "black"
                     ax.text(c, r, f"{val:.1f}%", ha="center", va="center", color=txt_color, fontsize=9, fontweight="bold")
                 else:
-                    ax.text(c, r, "-", ha="center", va="center", color="#999999")
+                    ax.text(c, r, "-", ha="center", va="center", color="#777777")
 
         cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label("Brecha Promedio (% Gap)")
+        cbar.outline.set_edgecolor("black")
+        cbar.outline.set_linewidth(0.8)
+        cbar.set_label("Brecha Promedio (% Gap)", fontweight="bold")
 
     fig.suptitle("Mapa de Calor: Configuración de Recursos (Población N vs Generaciones G)", fontsize=14, y=0.99)
     plt.tight_layout()
@@ -1250,11 +1338,12 @@ def plot_heatmaps(df_results, output_dir):
         matrix_data = pivot.values
         masked_data = np.ma.masked_invalid(matrix_data)
 
-        cmap = plt.get_cmap("YlGnBu_r").copy()
+        cmap = plt.get_cmap("gray_r").copy()
         cmap.set_bad(color="#eeeeee")
 
+        vmax_val = np.nanmax(df_ng["gap_pct"]) * 0.75
         im = ax.imshow(masked_data, cmap=cmap, aspect="auto", origin="lower",
-                       vmin=0, vmax=np.nanmax(df_ng["gap_pct"]) * 0.7)
+                       vmin=0, vmax=vmax_val)
 
         ax.set_xticks(range(len(g_vals)))
         ax.set_xticklabels([f"g={g}" for g in g_vals])
@@ -1264,17 +1353,24 @@ def plot_heatmaps(df_results, output_dir):
         ax.set_ylabel("Población (n - Exploración)")
         ax.set_title(title, fontweight="bold", pad=12)
 
+        ax.set_xticks(np.arange(-.5, len(g_vals), 1), minor=True)
+        ax.set_yticks(np.arange(-.5, len(n_vals), 1), minor=True)
+        ax.grid(which="minor", color="white", linestyle="-", linewidth=1.5)
+        ax.tick_params(which="minor", bottom=False, left=False)
+
         for r in range(len(n_vals)):
             for c in range(len(g_vals)):
                 val = matrix_data[r, c]
                 if not np.isnan(val):
-                    txt_color = "white" if val > 15 else "black"
+                    txt_color = "white" if val > (vmax_val * 0.5) else "black"
                     ax.text(c, r, f"{val:.1f}%", ha="center", va="center", color=txt_color, fontsize=9.5, fontweight="bold")
                 else:
-                    ax.text(c, r, "-", ha="center", va="center", color="#999999")
+                    ax.text(c, r, "-", ha="center", va="center", color="#777777")
 
         cbar = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label("Brecha Promedio (% Gap)")
+        cbar.outline.set_edgecolor("black")
+        cbar.outline.set_linewidth(0.8)
+        cbar.set_label("Brecha Promedio (% Gap)", fontweight="bold")
         plt.tight_layout()
         fig.savefig(out_dir / f"heatmap_n_vs_g_scale_{suffix}.png")
         plt.close(fig)
@@ -1318,7 +1414,7 @@ def main():
 
     plots_dir.mkdir(parents=True, exist_ok=True)
     print(f"==================================================")
-    print(f"[*] TDPDP - Generador de Gráficos y Consolidación")
+    print(f"[*] TDPDP - Generador de Gráficos Monocromáticos")
     print(f"[*] Directorio de Datos:    {results_dir}")
     print(f"[*] Directorio de Gráficos: {plots_dir}")
     print(f"==================================================")
@@ -1351,7 +1447,7 @@ def main():
     if args.only in ["all", "runtime"]:
         plot_runtime(df_results, plots_dir)
 
-    # Nuevos Casos B, C y D
+    # Casos B, C y D
     if args.only in ["all", "boxplots"]:
         plot_boxplots(df_results, plots_dir)
 
@@ -1363,7 +1459,7 @@ def main():
 
     print(f"==================================================")
     print(f"[✓] Proceso completado exitosamente.")
-    print(f"[✓] Los gráficos se han guardado de manera ordenada en: {plots_dir}")
+    print(f"[✓] Los gráficos monocromáticos se han guardado en: {plots_dir}")
     print(f"==================================================")
 
 
