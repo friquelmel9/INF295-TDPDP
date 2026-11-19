@@ -1,6 +1,71 @@
-% COMENTARIOS PAUTA
+% COMENTARIOS PAUTAmuestra en forma de alto niivel como se desarrolla el algoritmo.
 
 %\section{Descripci\'on del algoritmo}
 %C\'omo fue implementando, interesa la implementaci\'on m\'as que el algoritmo gen\'erico, es decir, si se tiene que implementar SA, lo que se espera es que se explique en pseudo c\'odigo la estructura general y en p\'arrafo explicativo cada parte como fue implementada para su caso particular, si se utilizan operadores se debe explicar por que se utiliz\'o ese operador, si fuera el caso de una t\'ecnica completa, si se utiliza recursi\'on o no, etc. Use diagramas para mostrar la estructura general del algoritmo, diagramas de flujo de movimientos, esquemas, etc. En este punto no se espera que se incluya c\'odigo, eso va aparte en la entrega del c\'odigo fuente.
 
-Descripción Algoritmo
+% Evolutionary algorithms are a class of algorithms that imitate the genetic improvements seen in humans or the natural behavior of animals. These algorithms are based on the idea that in a population, only the fittest individuals survive when competing for limited resources. They are commonly used in optimization problems, where the goal is to maximize or minimize an objective function. In computer science, evolutionary algorithms are frequently employed for training and hyperparameter tuning of soft sensor models.
+% Obtenida desde https://www.sciencedirect.com/topics/computer-science/evolutionary-algorithms
+En este trabajo se va a realizar la implementación de un algoritmo Evolutivo basado en la heuristica Truck-First, Drone-Second. 
+Un algoritmo evolutivo es un tipo de algoritmo que imita las mejoras geneticas generadas en la naturaleza por la evolución natural y la selección natural de Darwin. Se basan en que los individuos más fuertes son quienes sobreviven, se adaptan y generan descendencia, provocando individuos más optimos con más generaciones. 
+
+Para implementar el algoritmo evolutivo con nuestra representación, se decidio por hacer un enfoque hibrido de fenotipo/genotipo en el individuo. La secuencia de clientes representa un viaje TSP (entendido como genotipo), mientras que la asignación de los drones representa al TDPDP (el fenotipo). La función SPLIT transforma el viaje TSP a una secuencia TDPDP optimizada con los drones según su evaluación. El TSP se encarga de tener una secuencia de viaje valida, mienras que el SPLIT asigna los drones de manera que se cumplan las restricciones.
+
+La función de evaluación (fitness) calcula como el tiempo que se tarda para volver al deposito iniciial. Esto se hace sumando los tiempos del camión siguiendo el recorrido TSP, ira sumando el tiempo de ir de $i$ a $j$. En el caso de mandar un dron, se agrega el tiempo de lanzamiento $S_L$. Cuando un dron se reencuentra con el camión, se suma el máximo entre la llegada del camión y la llegada del dron, además del tiempo que tarda en recibir el dron $S_R$.
+
+Se utilizaron dos formas distintas para la generación de individuos (Soluciones iniciales). La primera fue mediante un shuffle aleatorio de todos los clientes, mientras que la segunda fue un GRASP en donde cada movimiento se escoge de manera aleatoria entre los mejores 5 vecinos.
+
+La asignación de drones se puede hacer mediante algoritmo Greedy o Programación Dinámica (DP). En este trabajo se decidio por realizar DP. El DP toma la secuencia TSP y asigna drones de manera optima. Los detalles de la implementación no alcanzan a abarcarse completamente, pero el algoritmo se encarga de en cada nodo guardar el costo mínimo total hasta el momento, optimizado con prefix\_sums para ejecutarse en $O(1)$. Esta asignación es quien se asegura de que se cumplan las restricciones de los drones, revisando que sea un vuelo valido y que el dron tenga batería suficiente para el viaje.
+
+En algoritmos evolutivos, el paso de una generación a otra se hace mediante tres posibles formas de crear individuos: Elitismo (Mantener un individuo de la generación anterior igual), Mutación (Modificación de un individuo) o Cruzamiento (Individuo nacido de dos individuos). Para cada nuevo individuo de la población se decide de que forma nacera según la probabilidad que ocurra una mutación ($p_{mut}$ o cruzamiento ($p_{cro}$. $p_{elit} = 1.0 - p_{cro} - p_{mut}$. En nuestro caso se trabaja unicamente sobre el TSP, es decir, optimizaremos estos movimientos para que optimicen TSP. Para escoger un individuo, se toman dos individuos aleatorios y se escoge el mejor de ambos (Torneo Binario)
+
+\begin{itemize}
+	\item En \textbf{Cruzamiento} se realiza mediante Order Crossover (OX). OX agarra una sección del primer padre (entre dos cortes), y los viajes que faltan iran en el orden relativo del padre 2 desde la misma posición relativa con el segundo corte.
+	\item En \textbf{Mutación}, se opto por tres tipos de mutación según su aptitud comparada con la mejor solución actual. Si la solución es de buena calidad, el algoritmo prioriza realizar 2-OPT (Inventir clientes en un subsegmento) para intensificar, si tiene una calidad decente realiza un Swap entre ciudades, y si tiene muy mala calidad se realiza un Scramble (Desorden aleatorio en un segmento del TSP) para explorar.
+	\item En \textbf{Elitismo} se agarra 
+\end{itemize}
+
+El pseucodigo en el Algoritmo \ref{alg:tdpdp_evolutivo} muestra en forma de alto nivel como se desarrolla el algoritmo.
+
+\begin{algorithm}[H]
+\caption{Algoritmo Evolutivo Híbrido para TDPDP}\label{alg:tdpdp_evolutivo}
+\begin{algorithmic}[1]
+\Require Instancia $tdpdp$ ($c, S_L, S_R, E, \tau, \tau', F$), tamaño de población $n$, generaciones $g$, probabilidad de mutación $p_{mut}$, probabilidad de cruzamiento $p_{cro}$.
+\Ensure Mejor individuo global $best\_indv$ (secuencia $tsp\_seq$ y asignación de drones).
+
+\State $P \gets \Call{GenerarPoblacionInicial}{tdpdp, n}$ \Comment{Inicialización GRASP con $k=5$}
+\ForAll{$indv \in P$}
+    \State $\Call{dpDrones}{indv, tdpdp}$ \Comment{Asignación de los drones}
+\EndFor
+\State $best\_indv \gets \arg\min_{indv \in P} (indv.fit)$ \Comment{Guardar mejor individuo de la generación}
+
+\For{$curr\_g \gets 0$ \textbf{to} $g - 1$} \Comment{Iterar por las generaciones}
+    \State $P_{next}[0] \gets P[best\_idx]$ \Comment{Elitismo estricto: preserva al mejor individuo}
+    \State $i \gets 1$
+	\While{$i < n$} \Comment{Creación de nuevos individuos}
+        \State $r \sim \mathcal{U}(0, 1)$ \Comment{Muestreo de variable aleatoria uniforme}
+        \If{$r < p_{mut}$} \Comment{Rama de Mutación Adaptativa}
+            \State $p \gets \Call{TorneoBinario}{P}$
+            \State $tipo\_mut \gets \Call{MuestreoDiscreto}{w_{\text{2-opt}}, w_{\text{swap}}, w_{\text{scramble}}}$
+            \State $hijo \gets \Call{Mutacion}{P[p], tdpdp, tipo\_mut}$
+            \State $P_{next}[i] \gets hijo$
+            
+        \ElsIf{$r < p_{mut} + p_{cro}$} \Comment{Rama de Cruzamiento Recombinativo}
+            \State $p_1 \gets \Call{TorneoBinario}{P}$
+            \State $p_2 \gets \Call{TorneoBinario}{P}$
+            \While{$p_2 = p_1 \textbf{ y } n > 1$}
+                \State $p_2 \sim \mathcal{U}_{\text{int}}(0, n - 1)$
+            \EndWhile
+            \State $hijo \gets \Call{CruzamientoOX}{P[p_1], P[p_2], tdpdp}$
+            \State $P_{next}[i] \gets hijo$
+            
+        \Else \Comment{Supervivencia / Reproducción directa}
+            \State $P_{next}[i] \gets \Call{TorneoBinario}{P}$
+        \EndIf
+        \State $i \gets i + 1$
+    \EndWhile
+    \State $P \gets P_{next}$ \Comment{Reemplazo generacional completo mediante intercambio de buffers}
+\EndFor
+
+\State \Return $best\_indv$
+\end{algorithmic}
+\end{algorithm}
