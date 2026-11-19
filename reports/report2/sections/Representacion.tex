@@ -1,0 +1,76 @@
+
+Recordamos el modelo matemático entregado en la sección anterior. La representación que utilizaremos para el algoritmo nace directamente del modelo, pero haciendo enfasis en el enfoque realizado en \cite{boysen2018drone}. 
+
+La representación de una solución viene en dos representaciones, el orden de entregas a los clientes y la informacón de que clientes fueron arreglados con dron.
+
+\begin{itemize}
+\item $x_i$: Indica el orden de entrega para el cliente $i$, independiente si fue entregado por camión o dron. Se asume que el nodo inicial y final son el depot ($0$), pero no se guardan dentro del arreglo para guardar información.
+\item $s_i$: Booleano que indica si el cliente fue entregado por camión o dron.
+\item $D$: Para cada cliente entregado por camión, se agrega su secuencia de vuelo al conjunto $D$ en la forma $i$, $j$, $k$. Es más auxiliar para representar bien la solución.
+\end{itemize}
+
+
+Esta represetación cumple el proposito de bajar el espacio de busqueda. El espacio de busqueda ahora se restringe unicamente a aquel del TSP (es decir, habra $C$ variables con $C$ posibles valores), lo que nos permite trabajar con un espacio mucho menor que si se hubiera agregado las posibilidades del dron. 
+Como se menciono en el estado del arte, \cite{prins2004simple} argumenta que esta representación no elimina optimos y, de hecho, filtra soluciones menos eficaces. Esto se puede argumentar de la siguiente manera:
+
+\begin{enumerate}
+\item Sabemos que un problema TDPDP es una secuencia de drones y camión. 
+\item Dado que cada dron se envia en un nodo $i$ y se junta con el camión en un nodo $k$, entonces el nodo de entrega $j$ debe de encontrarse en medio de $i$ y $k$.
+\item Por lo tanto, la secuencia de entregas de clientes siempre va a seguir un orden en donde cada entrega de dron esta entre medio de dos entregas de camión. Esta entrega también de dron también seria posible por el camión (camión no tiene limitaciones en cuanto a la entrega), pero es optimizada por el dorn
+\item Por tanto, podemos concluir que, si tuvieramos la secuencia original TSP, dado un algoritmo que optimize las entregas de dron se podra obtener la secuencia optimizada del problema TDPDP.
+\end{enumerate}
+
+El algoritmo que optimiza la ruta TSP es conocido como SPLIT. Dada la ruta de entregas de un camión, entonces se optimizara para incluir los drones de tal forma que minimice el tiempo final de la ruta (al llegar al depot).
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node_truck/.style={circle, draw=black, line width=1.2pt, fill=white, minimum size=0.85cm, inner sep=0pt},
+    node_depot/.style={circle, draw=black, line width=1.2pt, fill=black!15, minimum size=0.85cm, inner sep=0pt},
+    node_drone/.style={circle, draw=black, line width=1.2pt, fill=droneblue, minimum size=0.85cm, inner sep=0pt},
+    split_box/.style={rectangle, draw=black, line width=1.2pt, fill=white, minimum width=1.1cm, minimum height=0.95cm},
+    edge_truck/.style={line width=1.2pt},
+    edge_drone/.style={line width=1.3pt, line cap=round, dash pattern=on 0pt off 3.5pt}
+]
+
+    % --- Grafo Izquierdo: Tour TSP ---
+    \node[node_depot] (l0) at (0, 0) {};
+    \node[node_truck] (l1) at (1.6, 1.6) {};
+    \node[node_truck] (l2) at (3.2, 1.6) {};
+    \node[node_truck] (l3) at (3.2, 0) {};
+    \node[node_truck] (l4) at (1.6, -1.6) {};
+
+    \draw[edge_truck] (l0) -- (l1);
+    \draw[edge_truck] (l1) -- (l2);
+    \draw[edge_truck] (l2) -- (l3);
+    \draw[edge_truck] (l3) -- (l4);
+    \draw[edge_truck] (l4) -- (l0);
+
+    % --- Elemento Central: Split ---
+    \node[split_box] (split) at (6.0, 0) {};
+    \draw[edge_truck] (4.3, 0) -- (split.west);
+    \draw[edge_truck] (split.east) -- (7.7, 0);
+
+    % --- Grafo Derecho: Solución TDPDP con Dron ---
+    \node[node_depot] (r0) at (8.8, 0) {};
+    \node[node_truck] (r1) at (10.4, 1.6) {};
+    \node[node_drone] (r2) at (12.0, 1.6) {};
+    \node[node_truck] (r3) at (12.0, 0) {};
+    \node[node_truck] (r4) at (10.4, -1.6) {};
+
+    % Rutas terrestres (camión)
+    \draw[edge_truck] (r0) -- (r1);
+    \draw[edge_truck] (r1) -- (r3);
+    \draw[edge_truck] (r3) -- (r4);
+    \draw[edge_truck] (r4) -- (r0);
+
+    % Rutas aéreas (dron)
+    \draw[edge_drone] (r1) -- (r2);
+    \draw[edge_drone] (r2) -- (r3);
+
+\end{tikzpicture}
+	\caption{Representación del procedimiento SPLIT: partición de una ruta TSP (izquierda) para coordinar entregas terrestres (línea continua) y asignación de drones TDPDP (derecha) con entregas aéreas con dron (línea punteada).}
+\label{fig:split_representacion}
+\end{figure}
+
+
