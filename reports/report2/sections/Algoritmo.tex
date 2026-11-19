@@ -60,6 +60,7 @@ El pseucodigo en el Algoritmo \ref{alg:tdpdp_evolutivo} muestra en forma de alto
         \Else \Comment{Supervivencia / Reproducción directa}
             \State $P_{next}[i] \gets \Call{TorneoBinario}{P}$
         \EndIf
+		\State $\Call{dpdrones}{P_{next}[i], tdpdp}$ \Comment{Asignar drones al nuevo individuo}
         \State $i \gets i + 1$
     \EndWhile
     \State $P \gets P_{next}$ \Comment{Reemplazo generacional}
