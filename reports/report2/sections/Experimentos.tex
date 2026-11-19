@@ -1,5 +1,47 @@
-% COMENTARIOS PAUTA:
 
-% Se necesita saber c\'omo se hicieron los experimentos para testear los resultados del algoritmo (metodolog\'ia usada, entorno de esperimentaci\'on, etc.), cu\'ales son, c\'omo se definen y c\'omo se obtienen par\'ametros del algoritmo, como los fueron modificando, describir las instancias que se usaron (complejidad, estructura, etc), criterio de t\'ermino (si aplica). Debe comparar su algoritmo con el estado del arte, adem\'as de comparar ejecuciones con distintas especificaciones de su mismo algoritmo (Ejm. el valor del par\'ametro x siendo 0.1 vs 0.5 vs 0.9). Describir cantidad de ejecuciones usando semillas distintas para generar estad\'isticas.
+% 
 
-Experimentos Realizados
+La implementación principal del algoritmo se desarrollo en el lenguaje \texttt{C++}. El ejecutable tiene varios parametros para poder parametrizar el algoritmo. Estos incluyen \verb|n = INT| para el número de individuos por generación, \verb|g = INT| para el número de generaciones (iteraciones), \verb|--mut FLOAT| y \verb|--cro FLOAT| para indicar el valor de la probablidad para mutuación y cruzamiento, respectivamente, y un paramtro \verb|-i TEXT| para indicar el archivo de la instancia a leer.
+
+Los experimentos se ejecutaron en los laboratorios del departamento de Informatica de la UTFSM, conocidos como LABCOM, conectado mediante \verb|ssh|. Estos computadores tiene sistema operativo Linux Fedora 40 (Forty), con un Inter Core i5-10500 @ 3.10 GHZ (6C, 12T), con 16 GB de memoria RAM DDR4
+
+Las instancias poseen los datos de los clientes $c$, un conjunto de $C$ clientes que pueden ser atendidos por dron, las matrices $\tau_{ij}$ y $\tau_{ij}'$ que indican los tiempos de viaje de nodo $i$ a nodo $j$ para camión y dron, respectivamente. Se tiene los valores de $S_L$, $S_R$ y $E$ para las caracteristicas del dron, y los viajes permitidos en un conjunto $F$. Se asume que un viaje sea permitido no implica que el dron sea capaz de entregarlo por la bateria $E$.
+
+
+Para la evaluación del trabajo realizado se generaron distintos tipos de parametros. Los parametros de base son dos, uno default y otro con parámetros sintonizados mediante paramILS. 
+ParamILS (Parameter Iterated Local Search) se define en \cite{hutter2009paramils} como un marco de trabajo (framework) automatizado para la configuración y calibración de algoritmos. En \cite{montero2018tuners} se indica que ParamILS automatiza y sofistica el proceso manual de ajuste mediante Búsqueda Local Iterada (ILS).
+Se utilizo ParamILS dado su eficiencia y recomendación entregada por el ayudante. Además se justifica su uso, dado que en \cite{montero2018tuners} se concluye que concluye que cuando el objetivo es maximizar resultados de la metaheurística, ParamILS es el método más recomendado, ya que explota intensivamente las regiones prometedoras y devuelve la mejor configuración global encontrada.
+
+Se hicieron dos instancias de sintonización. La primera fue una instancia de una hora que retorno \verb|-n 200,-g 200, --mut 0.2 --cro 0.3|, mientras que la segunda instancia se ejecuto con más posibles valores para las variables durante 8 horas, retornando \verb|-n 200 -g 250 --mut 0.2 --cro 0.3|. Esto se guardaron como dos archivos llamados \verb|param_tuned_g200| y \verb|param_tuned_g250|, respectivamente.
+El default fue una instancia inicial que se utilizo para pruebas iniciales que se mantuvo para hacer comparativas. Corresponde a \verb|-n 200 -g 200 --mut 0.3 --cro 0.3|.
+
+El objetivo de la experimentación sera evidenciar las diferencias que se generan cuando cambia el número de individuos como cuando se cambián los parámetros del evolutivo, según tiempo y evaluación.
+En la Tabla \ref{tab:carpetas_parametros} se detallan las distintas categorías de parámetros implementadas y sus objetivos especificos.
+
+\begin{table}[H]
+\centering
+\small
+\setlength{\tabcolsep}{3pt}
+\caption{Clasificación y propósito de los conjuntos de parámetros evaluados.}
+\label{tab:carpetas_parametros}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.7cm} >{\raggedright\arraybackslash}p{2.1cm} >{\raggedright\arraybackslash}p{4.4cm} >{\raggedright\arraybackslash}p{4.5cm}}
+\toprule
+\textbf{Carpeta / Parámetros} & \textbf{Parámetros comunes} & \textbf{Variaciones} & \textbf{Explicación de utilidad} \\
+\midrule
+\texttt{00\_reference} & $n = 200$, semilla por defecto ($s = -1$). & Configuración por defecto ($g = 200$, $p_{mut} = 0.3$, $p_{cro} = 0.3$) frente a configuraciones sintonizadas con ParamILS ($g \in \{200, 250\}$, $p_{mut} = 0.2$, $p_{cro} = 0.3$). & Establece las líneas base de comparación, dado que todos los siguientes se basan en estos parámetros. \\
+\addlinespace[4pt]
+\texttt{01\_zero\_types} & $n = 200$, $g = 200$. & Supresión total de operadores: sin cruzamiento ($p_{cro} = 0.0$, $p_{mut} = 0.3$), sin mutación ($p_{mut} = 0.0$, $p_{cro} = 0.6$) y caminata aleatoria ($p_{mut} = 0.9$, $p_{cro} = 0.0$). & Sirve para estudiar el impacto individual de los movimientos realizados. \\
+\addlinespace[4pt]
+\texttt{02\_operator\_}\linebreak[0]\texttt{balance} & $n = 200$, $g = 200$. & Ratios variables de operadores: $(p_{mut}, p_{cro})$ evaluado en $(0.1, 0.7)$, $(0.2, 0.6)$, $(0.3, 0.3)$ y $(0.6, 0.1)$. & Permite observar el impacto de las funciones de movimiento y el compromiso entre exploración (mutación) y explotación (cruzamiento). \\
+\addlinespace[4pt]
+\texttt{03\_n\_g\_}\linebreak[0]\texttt{differences} & Tamaño de iteración fijo, $N \times G = 20.000$; $p_{mut} = 0.2$, $p_{cro} = 0.3$. & Distribución del esfuerzo computacional: $(n=50, g=400)$, $(n=100, g=200)$ y $(n=200, g=100)$. & Determina si conviene favorecer una población grande y diversa con pocas iteraciones (amplitud) o una reducida refinada por más generaciones (profundidad). \\
+\addlinespace[4pt]
+\texttt{04\_scale\_}\linebreak[0]\texttt{differences} & $p_{mut} = 0.2$, $p_{cro} = 0.3$. & Escalamiento del producto $N \times G \in [3.000, 50.000]$ mediante pares $(n, g)$: $(30, 100)$, $(50, 200)$, $(100, 200)$, $(200, 150)$, $(200, 250)$ y $(250, 200)$. & Evalúa la escalabilidad computacional y la ganancia marginal de calidad frente al incremento en tiempo de iteración. \\
+\addlinespace[4pt]
+\texttt{05\_seeds} & Configuración sintonizada: $n = 200$, $g = 250$, $p_{mut} = 0.2$, $p_{cro} = 0.3$. & Variación de semilla aleatoria $s \in \{1, 2, 3, 4, 5\}$ sobre las 20 instancias de prueba, comparando inicio GRASP vs. Random-Start. & Cuantifica la estabilidad del algoritmo frente a semillas distintas. Permite observar las fluctuaciones en el inicio y las iteraciones. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Adicionalmente, cada una de estas pruebas se ejecuto de dos formas distintas: Con una población general iniciada aleatoriamente mediante shuffle y otra mediante el GRASP mencionado anteriormente en la sección de Representación. Esto nos sirve para comparar la calidad de las soluciones dado una solución inicial distinta. Los datos se guardaron según si tuvieron GRASP como población inicial o no, y adicionalmente un archivo que junta ambos resultados. Dado que por cada instancia se ejecutaron $24$ parámetros distintos, dos veces según solución inicial, da un total de $960$ ejecuciones realizadas.
+

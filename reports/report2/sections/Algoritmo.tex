@@ -7,6 +7,7 @@
 % Obtenida desde https://www.sciencedirect.com/topics/computer-science/evolutionary-algorithms
 En este trabajo se va a realizar la implementación de un algoritmo Evolutivo basado en la heuristica Truck-First, Drone-Second. 
 Un algoritmo evolutivo es un tipo de algoritmo que imita las mejoras geneticas generadas en la naturaleza por la evolución natural y la selección natural de Darwin. Se basan en que los individuos más fuertes son quienes sobreviven, se adaptan y generan descendencia, provocando individuos más optimos con más generaciones. 
+Los algoritmos evolutivos tienen una cantidad $n$ de individuos por generación. Luego, se hace una cantidad de $g$ generaciones. El individuo con mejor evaluación es devuelto.
 
 Para implementar el algoritmo evolutivo con nuestra representación, se decidio por hacer un enfoque hibrido de fenotipo/genotipo en el individuo. La secuencia de clientes representa un viaje TSP (entendido como genotipo), mientras que la asignación de los drones representa al TDPDP (el fenotipo). La función SPLIT transforma el viaje TSP a una secuencia TDPDP optimizada con los drones según su evaluación. El TSP se encarga de tener una secuencia de viaje valida, mienras que el SPLIT asigna los drones de manera que se cumplan las restricciones.
 
