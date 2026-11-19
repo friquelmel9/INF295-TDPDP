@@ -22,15 +22,16 @@ Como se menciono en el estado del arte, \cite{prins2004simple} argumenta que est
 
 El algoritmo que optimiza la ruta TSP es conocido como SPLIT. Dada la ruta de entregas de un camión, entonces se optimizara para incluir los drones de tal forma que minimice el tiempo final de la ruta (al llegar al depot).
 
+
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    node_truck/.style={circle, draw=black, line width=1.2pt, fill=white, minimum size=0.85cm, inner sep=0pt},
-    node_depot/.style={circle, draw=black, line width=1.2pt, fill=black!15, minimum size=0.85cm, inner sep=0pt},
-    node_drone/.style={circle, draw=black, line width=1.2pt, fill=droneblue, minimum size=0.85cm, inner sep=0pt},
-    split_box/.style={rectangle, draw=black, line width=1.2pt, fill=white, minimum width=1.1cm, minimum height=0.95cm},
-    edge_truck/.style={line width=1.2pt},
-    edge_drone/.style={line width=1.3pt, line cap=round, dash pattern=on 0pt off 3.5pt}
+    node_truck/.style={circle, draw=black, line width=0.8pt, fill=white, minimum size=0.5cm, inner sep=0pt},
+    node_depot/.style={circle, draw=black, line width=0.8pt, fill=black!15, minimum size=0.5cm, inner sep=0pt},
+    node_drone/.style={circle, draw=black, line width=0.8pt, fill=droneblue, minimum size=0.5cm, inner sep=0pt},
+    split_box/.style={rectangle, draw=black, line width=0.8pt, fill=white, minimum width=0.75cm, minimum height=0.75cm},
+    edge_truck/.style={line width=0.8pt},
+    edge_drone/.style={line width=0.9pt, line cap=round, dash pattern=on 0pt off 3.5pt}
 ]
 
     % --- Grafo Izquierdo: Tour TSP ---

@@ -16,17 +16,18 @@ Se utilizaron dos formas distintas para la generación de individuos (Soluciones
 
 La asignación de drones se puede hacer mediante algoritmo Greedy o Programación Dinámica (DP). En este trabajo se decidio por realizar DP. El DP toma la secuencia TSP y asigna drones de manera optima. Los detalles de la implementación no alcanzan a abarcarse completamente, pero el algoritmo se encarga de en cada nodo guardar el costo mínimo total hasta el momento, optimizado con prefix\_sums para ejecutarse en $O(1)$. Esta asignación es quien se asegura de que se cumplan las restricciones de los drones, revisando que sea un vuelo valido y que el dron tenga batería suficiente para el viaje.
 
-En algoritmos evolutivos, el paso de una generación a otra se hace mediante tres posibles formas de crear individuos: Elitismo (Mantener un individuo de la generación anterior igual), Mutación (Modificación de un individuo) o Cruzamiento (Individuo nacido de dos individuos). Para cada nuevo individuo de la población se decide de que forma nacera según la probabilidad que ocurra una mutación ($p_{mut}$ o cruzamiento ($p_{cro}$. $p_{elit} = 1.0 - p_{cro} - p_{mut}$. En nuestro caso se trabaja unicamente sobre el TSP, es decir, optimizaremos estos movimientos para que optimicen TSP. Para escoger un individuo, se toman dos individuos aleatorios y se escoge el mejor de ambos (Torneo Binario)
+En algoritmos evolutivos, el paso de una generación a otra se hace mediante tres posibles formas de crear individuos: Elitismo (Mantener un individuo de la generación anterior igual), Mutación (Modificación de un individuo) o Cruzamiento (Individuo nacido de dos individuos). Para cada nuevo individuo de la población se decide de que forma nacera según la probabilidad que ocurra una mutación ($p_{mut}9$ o cruzamiento ($p_{cro}$). Luego el elitismo tiene lo que resta de probabilidad $p_{elit} = 1.0 - p_{cro} - p_{mut}$. En nuestro caso se trabaja unicamente sobre el TSP, es decir, optimizaremos estos movimientos para que optimicen TSP. Para escoger un individuo, se toman dos individuos aleatorios y se escoge el mejor de ambos (Torneo Binario)
 
 \begin{itemize}
 	\item En \textbf{Cruzamiento} se realiza mediante Order Crossover (OX). OX agarra una sección del primer padre (entre dos cortes), y los viajes que faltan iran en el orden relativo del padre 2 desde la misma posición relativa con el segundo corte.
 	\item En \textbf{Mutación}, se opto por tres tipos de mutación según su aptitud comparada con la mejor solución actual. Si la solución es de buena calidad, el algoritmo prioriza realizar 2-OPT (Inventir clientes en un subsegmento) para intensificar, si tiene una calidad decente realiza un Swap entre ciudades, y si tiene muy mala calidad se realiza un Scramble (Desorden aleatorio en un segmento del TSP) para explorar.
-	\item En \textbf{Elitismo} se agarra 
+	\item En \textbf{Elitismo} puede salir varios individuos a que sobrevivan la generación. Siempre se mantiene el mejor individuo (Elitismo Estricto)
 \end{itemize}
 
 El pseucodigo en el Algoritmo \ref{alg:tdpdp_evolutivo} muestra en forma de alto nivel como se desarrolla el algoritmo.
 
 \begin{algorithm}[H]
+\footnotesize
 \caption{Algoritmo Evolutivo Híbrido para TDPDP}\label{alg:tdpdp_evolutivo}
 \begin{algorithmic}[1]
 \Require Instancia $tdpdp$ ($c, S_L, S_R, E, \tau, \tau', F$), tamaño de población $n$, generaciones $g$, probabilidad de mutación $p_{mut}$, probabilidad de cruzamiento $p_{cro}$.
@@ -51,10 +52,7 @@ El pseucodigo en el Algoritmo \ref{alg:tdpdp_evolutivo} muestra en forma de alto
             
         \ElsIf{$r < p_{mut} + p_{cro}$} \Comment{Rama de Cruzamiento Recombinativo}
             \State $p_1 \gets \Call{TorneoBinario}{P}$
-            \State $p_2 \gets \Call{TorneoBinario}{P}$
-            \While{$p_2 = p_1 \textbf{ y } n > 1$}
-                \State $p_2 \sim \mathcal{U}_{\text{int}}(0, n - 1)$
-            \EndWhile
+            \State $p_2 \gets \Call{TorneoBinario}{P}$ \Comment{En caso de salir el mismo padre se busca otro aleatoriamente}
             \State $hijo \gets \Call{CruzamientoOX}{P[p_1], P[p_2], tdpdp}$
             \State $P_{next}[i] \gets hijo$
             
@@ -63,9 +61,9 @@ El pseucodigo en el Algoritmo \ref{alg:tdpdp_evolutivo} muestra en forma de alto
         \EndIf
         \State $i \gets i + 1$
     \EndWhile
-    \State $P \gets P_{next}$ \Comment{Reemplazo generacional completo mediante intercambio de buffers}
+    \State $P \gets P_{next}$ \Comment{Reemplazo generacional}
 \EndFor
 
-\State \Return $best\_indv$
+\State \Return $best\_indv$ \Comment{Retorno del mejor individuo}
 \end{algorithmic}
 \end{algorithm}
