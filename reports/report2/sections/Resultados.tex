@@ -1,5 +1,154 @@
-% COMENTARIOS PAUTA
+\subsection{Convergencia y Resultados de Evaluación}
 
-% Que fue lo que se logr\'o con la experimentaci\'on, incluir tablas y par\'ametros, gr\'aficos (por ejm boxplot), lo m\'as explicativo posible. En los resultados se espera que concluya cu\'al fue el rendimiento del algoritmo con los experimentos detallados en la secci\'on anterior, y compare las diferencias entre configuraciones distintas de los experimentos. Analizar los resultados obtenidos y concluir acerca de aspectos del algoritmo y/o de la complejidad de las instancias, o acerca de caracter\'isticas relacionadas con su implementaci\'on.
+Con 250 iteraciones en los parametros tuneados, se tiene los siguientes graficos en la figura \ref{fig:iteraciones_instancias} que muestran el desarrollo del algoritmo evolutivo por iteración. 
 
-Resultados
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plots/05_iterations_by_instance/Instance_010.1_new_iteration.png}
+        \caption{Instancia 010.1}
+        \label{fig:iter_010}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plots/05_iterations_by_instance/Instance_050.1_new_iteration.png}
+        \caption{Instancia 050.1}
+        \label{fig:iter_050}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plots/05_iterations_by_instance/Instance_100.1_new_iteration.png}
+        \caption{Instancia 100.1}
+        \label{fig:iter_100}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plots/05_iterations_by_instance/Instance_200.1_new_iteration.png}
+        \caption{Instancia 200.1}
+        \label{fig:iter_200}
+    \end{subfigure}
+	\caption{Evolución de la evaluación por iteración para las instancias 010.1, 050.1, 100.1 y 200.1. El eje vertical indica el valor de la solución (evaluación) mientras que el eje horizontal indica la iteración}
+    \label{fig:iteraciones_instancias}
+\end{figure}
+
+Podemos notar como hay una clara tendencia a ir reduciendo el valor del mejor individiuo mientras aumentan las iteraciones. Notemos también como las soluciones de GRASP son mucho mejores mientras aumenta el número de clientes.
+En $c=10$ y $c=50$ tanto el solución inicial aleatoria como grasp llegan al mismo resultado (GRASP con menor esfuerzo al empezar en un número mayor), pero ya con $c=100$ y $c=200$ las soluciones se diferencian tanto que GRASP converge con mucho mejor solución que el de la solución aleatoria. (Recordemos que queremos minimizar el tiempo final)
+
+Esto podemos verlo con más detalle en la tabla \ref{tab:resultados_tuneados}, donde se nos muestra el tiempo promedio de cada instancia resuelta con la respuesta promedio, cada una con su respectivo tipo de inicialización, porcentaje de mejora y solución final. Esta tabla utilizada los parámetros tuneados del paramILS
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\caption{Resultados obtenidos con parámetros sintonizados ($n=200, g=250, p_{mut}=0.2, p_{cro}=0.3$) comparando inicio Random-Start y GRASP.}
+\label{tab:resultados_tuneados}
+\begin{tabular}{lcccccc}
+\toprule
+\multirow{2}{*}{\textbf{Instancia}} & \multicolumn{2}{c}{\textbf{Tiempo Promedio (s)}} & \multicolumn{2}{c}{\textbf{\% de Mejora}} & \multicolumn{2}{c}{\textbf{Solución Final}} \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+ & \textbf{Random-Start} & \textbf{GRASP} & \textbf{Random-Start} & \textbf{GRASP} & \textbf{Random-Start} & \textbf{GRASP} \\
+\midrule
+Instance\_010.1 & 0.38 & 0.70 & 11.13\% & 8.00\% & 5936.14 & 5936.14 \\
+Instance\_010.2 & 0.73 & 0.74 & 13.51\% & 8.31\% & 6394.39 & 6394.39 \\
+Instance\_010.3 & 0.34 & 0.73 & 23.20\% & 17.01\% & 6310.60 & 6310.60 \\
+Instance\_010.4 & 0.51 & 0.50 & 20.37\% & 13.94\% & 8377.92 & 8377.92 \\
+Instance\_010.5 & 0.39 & 0.61 & 19.54\% & 13.61\% & 8934.41 & 8934.41 \\
+\midrule
+Instance\_050.1 & 2.81 & 3.13 & 69.78\% & 37.76\% & 14990.65 & 13296.42 \\
+Instance\_050.2 & 3.02 & 3.22 & 69.52\% & 37.84\% & 14618.20 & 13100.13 \\
+Instance\_050.3 & 2.85 & 2.99 & 74.32\% & 42.07\% & 14154.83 & 13198.17 \\
+Instance\_050.4 & 2.77 & 3.40 & 70.79\% & 38.14\% & 14805.67 & 13984.97 \\
+Instance\_050.5 & 2.76 & 3.07 & 72.27\% & 40.75\% & 14092.78 & 12989.62 \\
+\midrule
+Instance\_100.1 & 16.03 & 15.63 & 70.28\% & 31.47\% & 34399.90 & 22185.53 \\
+Instance\_100.2 & 16.75 & 15.83 & 68.45\% & 34.95\% & 34313.93 & 21015.35 \\
+Instance\_100.3 & 15.96 & 15.52 & 69.73\% & 32.84\% & 35392.28 & 22135.47 \\
+Instance\_100.4 & 17.11 & 16.65 & 68.54\% & 30.46\% & 34595.67 & 23335.43 \\
+Instance\_100.5 & 16.58 & 16.15 & 68.53\% & 31.67\% & 35384.55 & 21257.50 \\
+\midrule
+Instance\_200.1 & 139.87 & 127.57 & 60.46\% & 20.24\% & 89686.73 & 38997.47 \\
+Instance\_200.2 & 142.63 & 128.33 & 59.79\% & 22.03\% & 92093.77 & 39367.00 \\
+Instance\_200.3 & 138.16 & 125.51 & 60.98\% & 23.64\% & 92528.18 & 38266.75 \\
+Instance\_200.4 & 143.14 & 127.30 & 59.96\% & 21.14\% & 91402.70 & 40522.65 \\
+Instance\_200.5 & 141.45 & 128.50 & 59.76\% & 19.01\% & 91426.63 & 39713.80 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Podemos notar como en la instancias pequeñas con $c=10$ y $c=50$ el resultado final no cambia mucho entre las instancias con generación aleatoria comparadas con las generadas mediante GRASP. Sin embargo, podemos notar que desde $c=100$ ya hay bastante diferencia en el resultado final, especialmente con $c=200$
+
+Un detalle importante es como, pese a que el algoritmo GRASP tenga mejores soluciones, este no tiene una diferencia de tiempo significativa comparado con la de generación aleatoria, incluso teniendo mejor tiempo promedio en las instancias de $c=200$. Esto ocurre porque el Grasp trabaja en $O(n)$, va avanzando y conectando con el mejor de los $k=5$ vecinos, lo cual no implica una carga de tiempo grande en el algoritmo, por lo que podemos concluir que agregarle soluciones iniciales buenas mejora la calidad del algoritmo sin tener un peso por el tiempo.
+
+Por ultimo notemos como el algoritmo al generarse con mejores soluciones, GRASP converge más lentamente que el de solución aleatoria, teniendo en el peor de los casos un $23\%$ de mejora con respecto al primer mejor individuo. Esto podemos concluir que significa que mientras más cercano al optimo local el algoritmo ira mejorando menos las soluciones, por lo que no habra tanta diferencia con soluciones iniciales de calidad. En el caso de las soluciones generadas aleatoriamente, habra un montón de mejora, pero esto solo ocurre porque la solución inicial es de baja calidad, y pese a que hay más $\%$ de mejora en comparación a GRASP, esta llega a una solución peor en la misma cantidad de generaciones.
+
+Las graficas en la figura \ref{fig:boxplot_operators_separated} muestran un diagrama de caja para el fitness de las funciones basados en el GAP. El gap es la diferencia entre cada evaluación en comparación con la mejor evaluación de la instancia.
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plots/07_boxplots/boxplot_operators_relative_gap_grasp.png}
+        \caption{Inicio GRASP}
+        \label{fig:gap_operadores_grasp}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plots/07_boxplots/boxplot_operators_relative_gap_randomstart.png}
+        \caption{Inicio Random-Start}
+        \label{fig:gap_operadores_random}
+    \end{subfigure}
+    \caption{Distribución del gap relativo (\%) desagregado para inicio GRASP y Random-Start según combinación de operadores.}
+    \label{fig:boxplot_operators_separated}
+\end{figure}
+
+Se puede observar que hay mucha más varianza en los percentiles de las iteraciones con generación aleatoria que con GRASP.
+
+\subsection{Impacto de los parámetros}
+
+La figura \ref{fig:heatmaps_parametros} muestra dos mapas de calor. En \ref{fig:heatmap_n_vs_g} se hace la comparación de $n$ contra $g$, mientras que en \ref{fig:heatmap_operators} se hace la comparación entre $p_{mut}$ y $p_{cro}$. Las comparaciones se basan en el GAP con la mejor solución encontrada, es decir, menor GAP indica mejores soluciones. (Mencionar que son sobre las respuestas usando GRASP, los heatmap con solución aleatoria comparten la misma tendencia pero con un porcentaje mayor de diferencia)
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plots/09_heatmaps/heatmap_n_vs_g_scale_grasp.png}
+        \caption{población ($n$) vs. generaciones ($g$)}
+        \label{fig:heatmap_n_vs_g}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plots/09_heatmaps/heatmap_operators_mut_vs_cro_grasp.png}
+        \caption{mutación ($p_{mut}$) vs. cruzamiento ($p_{cro}$)}
+        \label{fig:heatmap_operators}
+    \end{subfigure}
+    \caption{Mapas de calor del gap relativo (\%) promedio según configuración de recursos y operadores genéticos.}
+    \label{fig:heatmaps_parametros}
+\end{figure}
+
+En el caso de la figura \ref{fig:heatmap_operators}, se puede ver como las mayorias diferencias se encuentran en los bordes, en donde hay un claro lider en las probabilidades de lo operadores. Esto cumple con la teoría, dado que realizar solamente exploración o explotación termina por generar peores soluciones. 
+
+En el caso de la figura \ref{fig:heatmap_n_vs_g}, las peores soluciones se encuentran el la zona inferior izquierda, en donde esta un $n$ y $g$ menor, y va mejorando mientras aumenta el $n$ y el $g$. También cumple con la teoría, dado que más iteraciones y más individuos aumenta la posibilidad de mejora en el cruzamiento y la mutuación. Sin embargo, El GAP va mejorando cada vez menos mientras se aumenta el $n$ y el $g$, lo que apoya lo visto en \ref{fig:iteraciones_instancias}, en donde mientras más iteraciones el algoritmo va convergiendo.
+
+Podemos complementar esto con el grafico en la figura \ref{fig:pareto_tradeoff}, que muestra el trade-off entre calidad de solución (según el GAP) y el tiempo de ejecución, mostrando según el $n$ vs $g$.
+Notemos que las soluciones van mejorando mientras aumenta el $g$ y el $n$, lo que se relaciona con el espacio de busqueda que ellos tienen por iteración (El cual corresponde a $n \times g$. Generalmente las iteraciones que tienen mismo valor de $n \times g$ tardan el mismo tiempo, pero aquellas que tienen mayor $g$ tienen mejores GAP que aquellas con un $n$ mayor.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plots/08_tradeoff_quality_runtime/pareto_tradeoff_budget_scale_grasp.png}
+        \caption{Inicio GRASP}
+        \label{fig:pareto_grasp}
+    \end{subfigure}\hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{plots/08_tradeoff_quality_runtime/pareto_tradeoff_budget_scale_randomstart.png}
+        \caption{Inicio Random-Start}
+        \label{fig:pareto_random}
+    \end{subfigure}
+    \caption{Curvas de trade-off y frente de Pareto entre tiempo de ejecución promedio y brecha relativa (\% Gap) al escalar el presupuesto ($N \times G$).}
+    \label{fig:pareto_tradeoff}
+\end{figure}
+
+
