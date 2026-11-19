@@ -597,10 +597,12 @@ def plot_scale_differences(df_results, output_dir):
 def plot_iterations_by_instance(df_iterations, output_dir):
     """
     5. Gráfico de puntos/línea que muestra el avance de cada iteración para cada instancia,
-       únicamente de aquellos parámetros en:
+       unificando en una sola gráfica la comparación entre:
+       - Inicio GRASP: línea punteada, variando la figura/marcador según la semilla.
+       - Inicio Aleatorio (Random-Start): línea gruesa continua, variando la figura/marcador según la semilla.
+       Parámetros incluidos:
        - code/data/parameters_code/05_seeds (seeds 1 a 5)
        - code/data/parameters_code/00_reference/param_tuned_g250 (seed=-1)
-       Cada línea corresponde al avance de un parámetro distinto en riguroso estilo B/N.
     """
     out_dir = Path(output_dir) / "05_iterations_by_instance"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -617,56 +619,98 @@ def plot_iterations_by_instance(df_iterations, output_dir):
     df_target = df_target.drop_duplicates(subset=["instance", "init_type", "seed", "i"], keep="first")
 
     instances = sorted(df_target["instance"].unique())
-    print(f"[*] Generando curvas de iteración monocromáticas para {len(instances)} instancias...")
+    print(f"[*] Generando curvas de iteración unificadas (GRASP punteado vs Random gruesa) para {len(instances)} instancias...")
 
-    # Mapeo monocromático distinguible en impresión en blanco y negro
-    param_styles = {
-        -1: {"label": "tuned_g250 (seed -1)", "color": "#000000", "marker": "o", "ls": "-", "lw": 2.0, "mfc": "black", "mec": "black", "mew": 1.0, "ms": 5.5},
-        1:  {"label": "tuned_g250_seed1",     "color": "#000000", "marker": "s", "ls": "--", "lw": 1.4, "mfc": "white", "mec": "black", "mew": 1.2, "ms": 5.5},
-        2:  {"label": "tuned_g250_seed2",     "color": "#333333", "marker": "^", "ls": "-.", "lw": 1.4, "mfc": "white", "mec": "#333333", "mew": 1.2, "ms": 5.5},
-        3:  {"label": "tuned_g250_seed3",     "color": "#555555", "marker": "v", "ls": ":",  "lw": 1.6, "mfc": "#555555", "mec": "black", "mew": 1.0, "ms": 5.5},
-        4:  {"label": "tuned_g250_seed4",     "color": "#666666", "marker": "D", "ls": (0, (5, 2)), "lw": 1.4, "mfc": "white", "mec": "#666666", "mew": 1.2, "ms": 5.0},
-        5:  {"label": "tuned_g250_seed5",     "color": "#777777", "marker": "x", "ls": (0, (3, 1, 1, 1)), "lw": 1.4, "mfc": "#777777", "mec": "#777777", "mew": 1.4, "ms": 5.5},
+    # Mapeo de figuras geométricas (marcadores) y etiquetas por semilla
+    seed_config = {
+        -1: {"marker": "o", "label": "tuned (seed -1)"},
+        1:  {"marker": "s", "label": "seed 1"},
+        2:  {"marker": "^", "label": "seed 2"},
+        3:  {"marker": "v", "label": "seed 3"},
+        4:  {"marker": "D", "label": "seed 4"},
+        5:  {"marker": "p", "label": "seed 5"},
     }
 
     for inst in instances:
         sub_inst = df_target[df_target["instance"] == inst]
 
-        fig, (ax_grasp, ax_rnd) = plt.subplots(1, 2, figsize=(16, 6), sharey=False, dpi=200)
+        fig, ax = plt.subplots(figsize=(11, 6.5), dpi=200)
 
-        for init_type, ax, title_prefix in [
-            ("grasp", ax_grasp, "Inicio GRASP (results_per_iteration.csv)"),
-            ("random-start", ax_rnd, "Inicio Aleatorio (randomstart.csv)"),
-        ]:
-            sub_init = sub_inst[sub_inst["init_type"] == init_type]
+        lines_grasp = []
+        labels_grasp = []
+        lines_rnd = []
+        labels_rnd = []
 
-            for s in seeds_target:
-                df_seed = sub_init[sub_init["seed"] == s].sort_values("i")
-                if df_seed.empty:
-                    continue
-                style = param_styles[s]
-                ax.plot(
-                    df_seed["i"], df_seed["eval"],
-                    label=style["label"],
-                    color=style["color"],
-                    linestyle=style["ls"],
-                    linewidth=style["lw"],
-                    marker=style["marker"],
+        for s in seeds_target:
+            cfg = seed_config[s]
+            m = cfg["marker"]
+            lbl = cfg["label"]
+
+            # Serie GRASP: Línea punteada con marcador hueco
+            df_grasp = sub_inst[(sub_inst["init_type"] == "grasp") & (sub_inst["seed"] == s)].sort_values("i")
+            if not df_grasp.empty:
+                l1, = ax.plot(
+                    df_grasp["i"], df_grasp["eval"],
+                    linestyle=":",
+                    linewidth=1.6,
+                    color="#000000",
+                    marker=m,
                     markevery=25,
-                    markersize=style["ms"],
-                    markerfacecolor=style["mfc"],
-                    markeredgecolor=style["mec"],
-                    markeredgewidth=style["mew"],
+                    markersize=5.5,
+                    markerfacecolor="white",
+                    markeredgecolor="#000000",
+                    markeredgewidth=1.2,
                     alpha=0.9
                 )
+                lines_grasp.append(l1)
+                labels_grasp.append(f"GRASP: {lbl}")
 
-            ax.set_title(f"{title_prefix}", fontweight="bold", pad=10)
-            ax.set_xlabel("Iteración / Generación (i)")
-            ax.set_ylabel("Fitness Mejor Histórico (Eval)")
-            ax.grid(True, linestyle=":", color="#d0d0d0", alpha=0.7)
-            ax.legend(loc="upper right", frameon=True, edgecolor="black", facecolor="white", fancybox=False, fontsize=8.5)
+            # Serie Random-Start: Línea gruesa continua con marcador relleno
+            df_rnd = sub_inst[(sub_inst["init_type"] == "random-start") & (sub_inst["seed"] == s)].sort_values("i")
+            if not df_rnd.empty:
+                l2, = ax.plot(
+                    df_rnd["i"], df_rnd["eval"],
+                    linestyle="-",
+                    linewidth=2.2,
+                    color="#444444",
+                    marker=m,
+                    markevery=25,
+                    markersize=5.5,
+                    markerfacecolor="#444444",
+                    markeredgecolor="#000000",
+                    markeredgewidth=1.0,
+                    alpha=0.9
+                )
+                lines_rnd.append(l2)
+                labels_rnd.append(f"Random: {lbl}")
 
-        fig.suptitle(f"Avance por Iteración - {inst}\nParámetros: 05_seeds & 00_reference/param_tuned_g250 (n=200, g=250, mut=0.2, cro=0.3)", fontsize=13, y=0.99)
+        # Intercalar entradas para que la leyenda en 2 columnas alinee GRASP a la izquierda y Random a la derecha
+        interleaved_lines = []
+        interleaved_labels = []
+        for lg, labg, lr, labr in zip(lines_grasp, labels_grasp, lines_rnd, labels_rnd):
+            interleaved_lines.extend([lg, lr])
+            interleaved_labels.extend([labg, labr])
+
+        ax.set_title(
+            f"Avance por Iteración - {inst}\n"
+            f"GRASP (Línea Punteada, Marcador Hueco) vs. Random-Start (Línea Gruesa, Marcador Relleno)",
+            fontweight="bold", pad=12
+        )
+        ax.set_xlabel("Generación / Iteración (i)", fontweight="bold")
+        ax.set_ylabel("Fitness Mejor Histórico (Eval)", fontweight="bold")
+        ax.grid(True, linestyle=":", color="#d0d0d0", alpha=0.7)
+        ax.legend(
+            interleaved_lines,
+            interleaved_labels,
+            ncol=2,
+            loc="upper right",
+            frameon=True,
+            edgecolor="black",
+            facecolor="white",
+            fancybox=False,
+            fontsize=8.5
+        )
+
         plt.tight_layout()
         base_name = inst.replace(".txt", "")
         fig.savefig(out_dir / f"{base_name}_iteration.png")
