@@ -17,15 +17,30 @@ y genera el código LaTeX de la tabla correspondiente.
 """
 
 import sys
+import os
 from pathlib import Path
-import numpy as np
-import pandas as pd
+
+try:
+    import numpy as np
+    import pandas as pd
+except ImportError:
+    repo_root = Path(__file__).resolve().parents[2]
+    venv_py = repo_root / ".venv" / "bin" / "python"
+    if venv_py.exists() and sys.executable != str(venv_py):
+        os.execv(str(venv_py), [str(venv_py)] + sys.argv)
+    else:
+        raise
 
 
 def get_tuned_summary(repo_root: Path) -> pd.DataFrame:
     results_dir = repo_root / "code" / "data" / "results"
     comb_path = results_dir / "results_combined.csv"
+    if not comb_path.exists():
+        comb_path = results_dir / "results.csv"
+
     iter_path = results_dir / "results_per_iteration_combined.csv"
+    if not iter_path.exists():
+        iter_path = results_dir / "results_per_iteration.csv"
 
     if not comb_path.exists():
         raise FileNotFoundError(f"No se encontró: {comb_path}")

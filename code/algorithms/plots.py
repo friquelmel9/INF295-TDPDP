@@ -123,10 +123,10 @@ def resolve_paths(base_dir=None):
     }
 
 
-def load_and_combine_results(results_dir, save_combined=True):
+def load_and_combine_results(results_dir, save_combined=False):
     """
-    Carga results.csv y results-randomstart.csv, les añade la columna 'init_type'
-    ('grasp' y 'random-start') y exporta 'results_combined.csv'.
+    Carga results.csv (y results-randomstart.csv si existe por retrocompatibilidad).
+    Asegura la presencia de la columna 'init_type'.
     """
     results_dir = Path(results_dir)
     grasp_path = results_dir / "results.csv"
@@ -134,16 +134,20 @@ def load_and_combine_results(results_dir, save_combined=True):
 
     if not grasp_path.exists():
         raise FileNotFoundError(f"No se encontró: {grasp_path}")
-    if not rnd_path.exists():
-        raise FileNotFoundError(f"No se encontró: {rnd_path}")
 
     df_grasp = pd.read_csv(grasp_path)
-    df_grasp["init_type"] = "grasp"
-
-    df_rnd = pd.read_csv(rnd_path)
-    df_rnd["init_type"] = "random-start"
-
-    df_combined = pd.concat([df_grasp, df_rnd], ignore_index=True)
+    if "init_type" in df_grasp.columns and not rnd_path.exists():
+        df_combined = df_grasp
+    else:
+        if "init_type" not in df_grasp.columns:
+            df_grasp["init_type"] = "grasp"
+        if rnd_path.exists():
+            df_rnd = pd.read_csv(rnd_path)
+            if "init_type" not in df_rnd.columns:
+                df_rnd["init_type"] = "random-start"
+            df_combined = pd.concat([df_grasp, df_rnd], ignore_index=True)
+        else:
+            df_combined = df_grasp
 
     if save_combined:
         combined_path = results_dir / "results_combined.csv"
@@ -153,10 +157,10 @@ def load_and_combine_results(results_dir, save_combined=True):
     return df_combined
 
 
-def load_and_combine_iterations(results_dir, save_combined=True):
+def load_and_combine_iterations(results_dir, save_combined=False):
     """
-    Carga results_per_iteration.csv y results_per_iteration-randomstart.csv,
-    añade la columna 'init_type' y exporta 'results_per_iteration_combined.csv'.
+    Carga results_per_iteration.csv (y results_per_iteration-randomstart.csv si existe por retrocompatibilidad).
+    Asegura la presencia de la columna 'init_type'.
     """
     results_dir = Path(results_dir)
     grasp_path = results_dir / "results_per_iteration.csv"
@@ -164,16 +168,20 @@ def load_and_combine_iterations(results_dir, save_combined=True):
 
     if not grasp_path.exists():
         raise FileNotFoundError(f"No se encontró: {grasp_path}")
-    if not rnd_path.exists():
-        raise FileNotFoundError(f"No se encontró: {rnd_path}")
 
     df_grasp_iter = pd.read_csv(grasp_path)
-    df_grasp_iter["init_type"] = "grasp"
-
-    df_rnd_iter = pd.read_csv(rnd_path)
-    df_rnd_iter["init_type"] = "random-start"
-
-    df_iter_combined = pd.concat([df_grasp_iter, df_rnd_iter], ignore_index=True)
+    if "init_type" in df_grasp_iter.columns and not rnd_path.exists():
+        df_iter_combined = df_grasp_iter
+    else:
+        if "init_type" not in df_grasp_iter.columns:
+            df_grasp_iter["init_type"] = "grasp"
+        if rnd_path.exists():
+            df_rnd_iter = pd.read_csv(rnd_path)
+            if "init_type" not in df_rnd_iter.columns:
+                df_rnd_iter["init_type"] = "random-start"
+            df_iter_combined = pd.concat([df_grasp_iter, df_rnd_iter], ignore_index=True)
+        else:
+            df_iter_combined = df_grasp_iter
 
     if save_combined:
         combined_path = results_dir / "results_per_iteration_combined.csv"
@@ -1464,13 +1472,13 @@ def main():
     print(f"==================================================")
 
     # 1. Cargar y consolidar resultados finales
-    df_results = load_and_combine_results(results_dir, save_combined=True)
+    df_results = load_and_combine_results(results_dir, save_combined=False)
 
     # 2. Cargar y consolidar resultados por iteración (si se requiere)
     df_iterations = None
     if args.only in ["all", "iterations"] and not args.skip_iterations:
         print("[*] Cargando archivos de iteraciones (puede demorar unos segundos)...")
-        df_iterations = load_and_combine_iterations(results_dir, save_combined=True)
+        df_iterations = load_and_combine_iterations(results_dir, save_combined=False)
 
     # Generación de gráficos según argumento --only
     if args.only in ["all", "seeds"]:

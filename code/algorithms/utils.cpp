@@ -76,7 +76,7 @@ void read_file(const std::string &filepath, TDPDP &inst){
  * - runtime (double): Tiempo de ejecución en segundos
  * - eval (Time): Evaluación/fitness del mejor individuo
  */
-void write_result(const std::string &filepath, const std::string &inst, const TDPDP &tdpdp, int seed, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval){
+void write_result(const std::string &filepath, const std::string &inst, const TDPDP &tdpdp, int seed, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval, const std::string &init_type){
 	if (filepath.empty()) return;
 	std::filesystem::path p(filepath);
 	if (p.has_parent_path()) {
@@ -99,9 +99,9 @@ void write_result(const std::string &filepath, const std::string &inst, const TD
 	}
 
 	if (write_header) {
-		file << "instance,c,seed,n,g,p_mut,p_cro,runtime,eval\n";
+		file << "instance,c,seed,n,g,p_mut,p_cro,runtime,eval,init_type\n";
 	}
-	file << instance_name << "," << tdpdp.c << "," << seed << "," << n << "," << g << "," << p_mut << "," << p_cro << "," << runtime << "," << eval << "\n";
+	file << instance_name << "," << tdpdp.c << "," << seed << "," << n << "," << g << "," << p_mut << "," << p_cro << "," << runtime << "," << eval << "," << init_type << "\n";
 
 	file.close();
 }
@@ -124,8 +124,9 @@ void write_result(const std::string &filepath, const std::string &inst, const TD
  * - i (int): Iteración/generación actual
  * - runtime (double): Tiempo transcurrido acumulado en segundos
  * - eval (Time): Evaluación/fitness del mejor individuo histórico hasta esa generación
+ * - init_type (string): Tipo de inicialización ("grasp" o "random-start")
  */
-void write_step(const std::string &filepath, const std::string &inst, int c, int seed, int n, int g, Prob p_mut, Prob p_cro, int i, double runtime, Time eval){
+void write_step(const std::string &filepath, const std::string &inst, int c, int seed, int n, int g, Prob p_mut, Prob p_cro, int i, double runtime, Time eval, const std::string &init_type){
 	if (filepath.empty()) return;
 	std::filesystem::path p(filepath);
 	if (p.has_parent_path()) {
@@ -148,9 +149,9 @@ void write_step(const std::string &filepath, const std::string &inst, int c, int
 	}
 
 	if (write_header) {
-		file << "instance,c,seed,n,g,p_mut,p_cro,i,runtime,eval\n";
+		file << "instance,c,seed,n,g,p_mut,p_cro,i,runtime,eval,init_type\n";
 	}
-	file << instance_name << "," << c << "," << seed << "," << n << "," << g << "," << p_mut << "," << p_cro << "," << i << "," << runtime << "," << eval << "\n";
+	file << instance_name << "," << c << "," << seed << "," << n << "," << g << "," << p_mut << "," << p_cro << "," << i << "," << runtime << "," << eval << "," << init_type << "\n";
 
 	file.close();
 }

@@ -324,22 +324,34 @@ Individual random_nearest_neighborhood(const TDPDP &tdpdp, int k){
 	return ind;
 }
 
-/* Función que genera instancias iniciales para el tdpdp mediante GRASP (Randomized Nearest Neighbor)
+/* Función que genera instancias iniciales para el tdpdp mediante GRASP o shuffle aleatorio (random-start)
  *
  * Parámetros
  * - tdpdp (TDPDP): Datos del problema tdpdp asociado a las instancias
  * - n (int): Cantidad de individuos en la población
+ * - grasp (bool): Si es true utiliza GRASP (random_nearest_neighborhood); si es false utiliza shuffle aleatorio
  *
  * Retorno:
  * - Retorna una población donde cada individuo viene con los datos del tsp_seq completados.
  * */
-std::vector<Individual> generatePopulation(const TDPDP &tdpdp, const int n){
+std::vector<Individual> generatePopulation(const TDPDP &tdpdp, const int n, const bool grasp){
 	std::vector<Individual> population;
 	if (n <= 0) return population;
 	population.reserve(n);
 
 	for(int j=0; j<n; ++j){
-		population.push_back(random_nearest_neighborhood(tdpdp, 5));
+		if(grasp){
+			population.push_back(random_nearest_neighborhood(tdpdp, 5));
+		} else {
+			Individual ind;
+			if(tdpdp.c > 0){
+				std::vector<Client> tour(tdpdp.c);
+				std::iota(tour.begin(), tour.end(), 1);
+				std::shuffle(tour.begin(), tour.end(), get_rng());
+				ind.tsp_seq = std::move(tour);
+			}
+			population.push_back(std::move(ind));
+		}
 	}
 
 	return population;

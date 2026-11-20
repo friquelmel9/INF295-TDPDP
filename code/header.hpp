@@ -16,6 +16,7 @@
 #include <filesystem>
 #include <limits>
 #include <algorithm>
+#include <numeric>
 
 // Función para números aleatorios
 inline std::mt19937& get_rng() {static std::mt19937 rng(std::random_device{}());return rng;}
@@ -183,7 +184,7 @@ Individual mutation(const Individual &indv, const TDPDP &tdpdp, const int type);
 void repair(Individual &indv, const TDPDP &tdpdp); // Repara algún individuo
 Individual random_nearest_neighborhood(const TDPDP &tdpdp, int k = 5); // Genera una instancia inicial mediante GRASP (Randomized Nearest Neighbor)
 inline Individual random_nearest_neighboorhodd(const TDPDP &tdpdp, int k = 5) { return random_nearest_neighborhood(tdpdp, k); }
-std::vector<Individual> generatePopulation(const TDPDP &tdpdp, const int n); // Genera la población inicial
+std::vector<Individual> generatePopulation(const TDPDP &tdpdp, const int n, const bool grasp = true); // Genera la población inicial
 
 /* Conjunto de declaración de funciones para la obtención optima del dron.
  * */
@@ -195,6 +196,6 @@ void greedyDrones(Individual &indv, const TDPDP &tdpdp); // Genera mediante un g
  * */
 
 void read_file(const std::string &filepath, TDPDP &inst); // Lectura de un archivo instancia
-void write_result(const std::string &filepath, const std::string &inst, const TDPDP &tdpdp, int seed, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval);
-void write_step(const std::string &filepath, const std::string &inst, int c, int seed, int n, int g, Prob p_mut, Prob p_cro, int i, double runtime, Time eval);
+void write_result(const std::string &filepath, const std::string &inst, const TDPDP &tdpdp, int seed, int n, int g, Prob p_mut, Prob p_cro, double runtime, Time eval, const std::string &init_type = "grasp");
+void write_step(const std::string &filepath, const std::string &inst, int c, int seed, int n, int g, Prob p_mut, Prob p_cro, int i, double runtime, Time eval, const std::string &init_type = "grasp");
 #endif

@@ -7,7 +7,7 @@
 #include "algorithms/evolutivos.cpp"
 #include "algorithms/drones.cpp"
 
-Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print = false, const std::string &inst = "", const std::string &step_filepath = "", int seed = -1);
+Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print = false, const std::string &inst = "", const std::string &step_filepath = "", int seed = -1, bool grasp = true);
 
 namespace fs = std::filesystem;
 
@@ -23,15 +23,18 @@ namespace fs = std::filesystem;
  * - inst (string): Ruta/nombre de la instancia
  * - step_filepath (string): Ruta del archivo para registrar cada iteración
  * - seed (int): Semilla aleatoria utilizada
+ * - grasp (bool): Indica si la población inicial usa GRASP (true) o shuffle aleatorio (false)
  * */
-Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print, const std::string &inst, const std::string &step_filepath, int seed){
+Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, double p_cro, const bool print, const std::string &inst, const std::string &step_filepath, int seed, bool grasp){
 	
 	auto assign_drones = [&](Individual& indv){dpDrones(indv, tdpdp);};
 
 	auto t_start = std::chrono::high_resolution_clock::now();
 
+	const std::string init_type = grasp ? "grasp" : "random-start";
+
 	// Generar la población inicial y asignar drones
-	std::vector<Individual> generation = generatePopulation(tdpdp, n);
+	std::vector<Individual> generation = generatePopulation(tdpdp, n, grasp);
 	for(Individual& indv : generation){assign_drones(indv);}
 
 	// Mejor individuo histórico
@@ -143,7 +146,7 @@ Individual evolutionaryTdpdp(const TDPDP &tdpdp, int n, int g, double p_mut, dou
 		if(!step_filepath.empty()){
 			auto t_now = std::chrono::high_resolution_clock::now();
 			double curr_runtime = std::chrono::duration<double>(t_now - t_start).count();
-			write_step(step_filepath, inst, tdpdp.c, seed, n, g, p_mut, p_cro, curr_g, curr_runtime, best_indv.fit);
+			write_step(step_filepath, inst, tdpdp.c, seed, n, g, p_mut, p_cro, curr_g, curr_runtime, best_indv.fit, init_type);
 		}
 	}
 
@@ -170,6 +173,7 @@ int main(int argc, char** argv){
 	int seed=-1;
 	bool print=false;
 	bool result=false;
+	bool grasp=false;
 
 	// Parámetrizados utilizados para usar paramILS
 	app.add_option("-n,--n",n,"Tamaño de la Población (n)");
@@ -180,6 +184,7 @@ int main(int argc, char** argv){
 	app.add_option("-s,--seed",seed,"Semilla a utilizar en la generación de números aleatorios");
 	app.add_flag("-p,--print",print,"Imprime el estado actual del algoritmo");
 	app.add_flag("-r,--result",result,"Imprime el resultado del algoritmo (para tunear usando ParamILS)");
+	app.add_flag("--grasp,!--no-grasp",grasp,"Indica si generatePopulation utiliza GRASP o shuffle aleatorio (random-start)");
 
 	CLI11_PARSE(app, argc, argv);
 
@@ -194,9 +199,10 @@ int main(int argc, char** argv){
 	std::string results_dir = fs::exists("data/results") ? "data/results" : "code/data/results";
 	std::string results_file = results_dir + "/results.csv";
 	std::string step_results_file = results_dir + "/results_per_iteration.csv";
+	const std::string init_type = grasp ? "grasp" : "random-start";
 
 	auto t_start = std::chrono::high_resolution_clock::now();
-	Individual best = evolutionaryTdpdp(tdpdp, n, g, p_mut, p_cro, print, inst, step_results_file, seed);
+	Individual best = evolutionaryTdpdp(tdpdp, n, g, p_mut, p_cro, print, inst, step_results_file, seed, grasp);
 	auto t_end = std::chrono::high_resolution_clock::now();
 	double runtime = std::chrono::duration<double>(t_end - t_start).count();
 
@@ -204,7 +210,7 @@ int main(int argc, char** argv){
 	if(print){std::cout << "[=] Resultado final: runtime = " << runtime << " (s), con resultado " << best.fit << "[=]" << std::endl;}
 	if(result){std::cout << "Result for ParamILS: SAT, " << runtime << ", " << g << ", " << best.fit << ", " << seed << std::endl;}
 
-	write_result(results_file, inst, tdpdp, seed, n, g, p_mut, p_cro, runtime, best.fit);
+	write_result(results_file, inst, tdpdp, seed, n, g, p_mut, p_cro, runtime, best.fit, init_type);
 
 	return 0;
 }

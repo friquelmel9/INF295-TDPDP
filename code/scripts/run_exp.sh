@@ -68,13 +68,13 @@ SUCCESS_COUNT=0
 FAIL_COUNT=0
 CONFIG_INDEX=1
 
+TOTAL_CONFIGS=$((TOTAL_CONFIGS * 2))
+
 START_TIME=$(date +%s)
 
 for param_file in "${PARAM_FILES[@]}"; do
     # Ruta relativa amigable para visualización
     rel_path="${param_file#$BASE_PARAMS_DIR/}"
-    echo ""
-    echo "[*][$CONFIG_INDEX/$TOTAL_CONFIGS] Configuración: $rel_path"
 
     # Leer parámetros del archivo (ignorando líneas vacías y comentarios)
     param_args=()
@@ -85,16 +85,28 @@ for param_file in "${PARAM_FILES[@]}"; do
         param_args+=("${words[@]}")
     done < "$param_file"
 
-
-    # Ejecutar run_all.sh con los parámetros leídos y argumentos adicionales
+    # 1. Ejecutar run_all.sh sin --grasp (random-start)
+    echo ""
+    echo "[*][$CONFIG_INDEX/$TOTAL_CONFIGS] Configuración: $rel_path [random-start]"
     if bash "$SCRIPT_RUN" "${param_args[@]}" "${EXTRA_ARGS[@]}"; then
-        echo "[✓] Configuración '$rel_path' finalizada con éxito."
+        echo "[✓] Configuración '$rel_path' finalizada con éxito (random-start)."
         ((SUCCESS_COUNT++))
     else
         echo "[✗] Configuración '$rel_path' falló durante la ejecución." >&2
         ((FAIL_COUNT++))
     fi
+    ((CONFIG_INDEX++))
 
+    # 2. Ejecutar run_all.sh con --grasp (GRASP)
+    echo ""
+    echo "[*][$CONFIG_INDEX/$TOTAL_CONFIGS] Configuración: $rel_path [GRASP]"
+    if bash "$SCRIPT_RUN" "${param_args[@]}" --grasp "${EXTRA_ARGS[@]}"; then
+        echo "[✓] Configuración '$rel_path' finalizada con éxito (GRASP)."
+        ((SUCCESS_COUNT++))
+    else
+        echo "[✗] Configuración '$rel_path' falló durante la ejecución." >&2
+        ((FAIL_COUNT++))
+    fi
     ((CONFIG_INDEX++))
 done
 
