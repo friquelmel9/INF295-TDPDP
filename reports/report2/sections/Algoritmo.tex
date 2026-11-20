@@ -25,7 +25,7 @@ En algoritmos evolutivos, el paso generacional se rige por tres mecanismos: Elit
 	\item En el \textbf{Elitismo}, se mantiene siempre el mejor individuo de la población (\textit{Elitismo Estricto}).
 \end{itemize}
 
-El pseudocódigo en el Algoritmo \ref{alg:tdpdp_evolutivo} muestra a alto nivel cómo se desarrolla el algoritmo.
+El pseudocódigo en el Algoritmo \ref{alg:tdpdp_evolutivo} muestra a alto nivel cómo se desarrolla el algoritmo, mientras que la imagen en \ref{fig:diagrama_flujo} representa el proceso iterativo del algoritmo.
 
 \begin{algorithm}[H]
 \footnotesize
@@ -69,3 +69,10 @@ El pseudocódigo en el Algoritmo \ref{alg:tdpdp_evolutivo} muestra a alto nivel 
 \State \Return $best\_indv$ \Comment{Retorno del mejor individuo}
 \end{algorithmic}
 \end{algorithm}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{plots/10_diagrams/FLUJO.png}
+    \caption{Diagrama de flujo del algoritmo evolutivo híbrido para el problema TDPDP.}
+    \label{fig:diagrama_flujo}
+\end{figure}
