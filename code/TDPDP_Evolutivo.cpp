@@ -165,10 +165,10 @@ int main(int argc, char** argv){
 	CLI::App app{"T"};
 	
 	// Valores comunes para las variables
-	int n=50;
-	int g=50;
+	int n=200;
+	int g=200;
 	Prob p_mut = 0.3;
-	Prob p_cro = 0.4;
+	Prob p_cro = 0.3;
 	std::string inst;
 	int seed=-1;
 	bool print=false;
