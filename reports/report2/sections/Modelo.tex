@@ -3,7 +3,7 @@
 \setlength{\abovedisplayshortskip}{1pt}
 \setlength{\belowdisplayshortskip}{1pt}
 
-En este trabajo se formula el modelo matemático del TDPDP con base directa en el trabajo seminal de Murray y Chu \cite{Murray2015Flying}, marco canónico para el ruteo colaborativo camión-dron.
+En este trabajo se formula el modelo matemático del TDPDP con base directa en el trabajo seminal de \textit{Murray} y \textit{Chu} \cite{Murray2015Flying}, marco canónico para el ruteo colaborativo camión-dron.
 
 \subsection{Parámetros}
 
@@ -45,7 +45,7 @@ Minimizar el tiempo de retorno del vehículo más tardío al depósito final ($c
 \tag{3--4}
 \end{equation}
 
-\item \textbf{Eliminación de subtours para el camión (Miller-Tucker-Zemlin):}
+\item \textbf{Eliminación de subtours para el camión (\textit{Miller-Tucker-Zemlin}):}
 \begin{equation}
 u_i - u_j + 1 \le (c+2)(1 - x_{ij}) \quad \forall i \in C, \; j \in N_+ \setminus \{i\} 
 \tag{5}
@@ -125,12 +125,12 @@ t_0 = 0, \quad t'_0 = 0, \quad p_{0j} = 1 \; \forall j \in C; \qquad x_{ij}, p_{
 \subsection{Variaciones del Modelo en la Literatura}
 
 \begin{itemize}
-\item En \cite{ponza2016optimization}, las variables de tiempo $t_i$ y $t'_i$ son definidas como el tiempo de llegada al nodo $i$, tanto para el camión como para el dron. En el artículo se denomina a las variables $t_i^T$ y $t_i^D$ como el instante en el que el dron está listo para salir. Esto sirve para calcular de mejor manera la restricción de que el dron se encuentre esperando a la llegada del camión. También mencionan que el modelo original no contabiliza el tiempo de lanzamiento ($S_L$) dentro del gasto de batería.
-\item En \cite{freitas2021exact} se eliminan las variables auxiliares $u_i$, realizando un indexamiento de los tiempos en que el camión hace las visitas, definido como $l \in L = \{0,\dots,n\}$. Esto hace que el problema sea más óptimo de resolver.
-\item En \cite{boysen2018drone}, el modelo trata más de resolver qué drones se pueden agregar a un camino de camión ya prefijado, es decir, el modelo apunta a agregar drones en la ruta ya resuelta de un VRP.
-\item En \cite{thomas2024collaborative}, se agregan parámetros para poder hacer que el dron vuelva al camión durante el trayecto entre nodos, en vez de tener que estar esperando en una ubicación específica. También aumentan la complejidad del dron, añadiendo consumos distintos de batería según la actividad que el dron esté realizando (viajando, cargando, volviendo).
+\item En \textit{Ponza} \cite{ponza2016optimization}, las variables de tiempo $t_i$ y $t'_i$ son definidas como el tiempo de llegada al nodo $i$, tanto para el camión como para el dron. En el artículo se denomina a las variables $t_i^T$ y $t_i^D$ como el instante en el que el dron está listo para salir. Esto sirve para calcular de mejor manera la restricción de que el dron se encuentre esperando a la llegada del camión. También mencionan que el modelo original no contabiliza el tiempo de lanzamiento ($S_L$) dentro del gasto de batería.
+\item En \textit{Freitas} y \textit{Penna} \cite{freitas2021exact} se eliminan las variables auxiliares $u_i$, realizando un indexamiento de los tiempos en que el camión hace las visitas, definido como $l \in L = \{0,\dots,n\}$. Esto hace que el problema sea más óptimo de resolver.
+\item En \textit{Boysen et al.} \cite{boysen2018drone}, el modelo trata más de resolver qué drones se pueden agregar a un camino de camión ya prefijado, es decir, el modelo apunta a agregar drones en la ruta ya resuelta de un VRP.
+\item En \textit{Thomas et al.} \cite{thomas2024collaborative}, se agregan parámetros para poder hacer que el dron vuelva al camión durante el trayecto entre nodos, en vez de tener que estar esperando en una ubicación específica. También aumentan la complejidad del dron, añadiendo consumos distintos de batería según la actividad que el dron esté realizando (viajando, cargando, volviendo).
 \end{itemize}
 
 % Inclusión especificación de variantes
 
-En este trabajo se hara uso del modelo original definido en las secciones 4.1, 4.2, 4.3 y 4.4, con un enfoque en la variación de \cite{boysen2018drone}, es decir, resolver camino prefijado y agregar drones. Esto es debido a que se trabajara sobre un modelo evolutivo mixto que se vera en la siguiente sección
+En este trabajo se hará uso del modelo original presentado en las subsecciones anteriores, con un enfoque en la variación de \textit{Boysen et al.} \cite{boysen2018drone}, es decir, resolver un recorrido terrestre base y agregar drones. Esto responde a que se trabajará sobre un modelo evolutivo híbrido que se detalla en la siguiente sección.

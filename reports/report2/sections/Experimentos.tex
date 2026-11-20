@@ -1,22 +1,16 @@
-
 % 
 
-La implementación principal del algoritmo se desarrollo en el lenguaje \texttt{C++}. El ejecutable tiene varios parametros para poder parametrizar el algoritmo. Estos incluyen \verb|n = INT| para el número de individuos por generación, \verb|g = INT| para el número de generaciones (iteraciones), \verb|--mut FLOAT| y \verb|--cro FLOAT| para indicar el valor de la probablidad para mutuación y cruzamiento, respectivamente, y un paramtro \verb|-i TEXT| para indicar el archivo de la instancia a leer.
+La implementación principal del algoritmo se desarrolló en el lenguaje \textit{C++}. El ejecutable cuenta con diversos parámetros de configuración: \texttt{-n INT} para el número de individuos por generación, \texttt{-g INT} para el número de generaciones (iteraciones), \texttt{--mut FLOAT} y \texttt{--cro FLOAT} para indicar las probabilidades de mutación y cruzamiento, respectivamente, y el parámetro \texttt{-i TEXT} para indicar el archivo de la instancia a leer.
 
-Los experimentos se ejecutaron en los laboratorios del departamento de Informatica de la UTFSM, conocidos como LABCOM, conectado mediante \verb|ssh|. Estos computadores tiene sistema operativo Linux Fedora 40 (Forty), con un Inter Core i5-10500 @ 3.10 GHZ (6C, 12T), con 16 GB de memoria RAM DDR4
+Los experimentos se ejecutaron en los laboratorios del Departamento de Informática de la UTFSM (LABCOM), conectados mediante \texttt{SSH}. Estos computadores cuentan con sistema operativo \textit{Linux Fedora 40}, procesador \textit{Intel Core i5-10500} @ 3.10 GHz (6C, 12T) y 16 GB de memoria RAM DDR4.
 
-Las instancias poseen los datos de los clientes $c$, un conjunto de $C$ clientes que pueden ser atendidos por dron, las matrices $\tau_{ij}$ y $\tau_{ij}'$ que indican los tiempos de viaje de nodo $i$ a nodo $j$ para camión y dron, respectivamente. Se tiene los valores de $S_L$, $S_R$ y $E$ para las caracteristicas del dron, y los viajes permitidos en un conjunto $F$. Se asume que un viaje sea permitido no implica que el dron sea capaz de entregarlo por la bateria $E$.
+Las instancias poseen los datos de clientes $c$, un conjunto $C'$ de clientes atendibles por dron, matrices $\tau_{ij}$ y $\tau'_{ij}$ de tiempos de viaje para camión y dron, los valores $S_L$, $S_R$ y $E$ de características del dron, y los vuelos en el conjunto $F$. Cabe señalar que el hecho de que un vuelo pertenezca a $F$ no garantiza por sí solo su factibilidad energética respecto a la batería $E$.
 
+Para la evaluación del trabajo realizado se generaron distintos conjuntos de parámetros. Los parámetros base son dos: uno por defecto y otro sintonizado mediante \textit{ParamILS}. \textit{ParamILS} (\textit{Parameter Iterated Local Search}) se define en \textit{Hutter et al.} \cite{hutter2009paramils} como un marco de trabajo automatizado para la calibración de algoritmos. En \textit{Montero et al.} \cite{montero2018tuners} se indica que \textit{ParamILS} automatiza el ajuste mediante Búsqueda Local Iterada (ILS), concluyendo que, cuando el objetivo es maximizar resultados de la metaheurística, constituye uno de los métodos más recomendados.
 
-Para la evaluación del trabajo realizado se generaron distintos tipos de parametros. Los parametros de base son dos, uno default y otro con parámetros sintonizados mediante paramILS. 
-ParamILS (Parameter Iterated Local Search) se define en \cite{hutter2009paramils} como un marco de trabajo (framework) automatizado para la configuración y calibración de algoritmos. En \cite{montero2018tuners} se indica que ParamILS automatiza y sofistica el proceso manual de ajuste mediante Búsqueda Local Iterada (ILS).
-Se utilizo ParamILS dado su eficiencia y recomendación entregada por el ayudante. Además se justifica su uso, dado que en \cite{montero2018tuners} se concluye que concluye que cuando el objetivo es maximizar resultados de la metaheurística, ParamILS es el método más recomendado, ya que explota intensivamente las regiones prometedoras y devuelve la mejor configuración global encontrada.
+Se realizaron dos instancias de sintonización: una de una hora que retornó $n=200$, $g=200$, $p_{mut}=0.2$, $p_{cro}=0.3$, y otra con mayor exploración durante 8 horas que retornó $n=200$, $g=250$, $p_{mut}=0.2$, $p_{cro}=0.3$. Estas configuraciones se guardaron en los archivos \texttt{param\_tuned\_g200} y \texttt{param\_tuned\_g250}, respectivamente. La configuración por defecto empleada como referencia inicial correspondió a $n=200$, $g=200$, $p_{mut}=0.3$, $p_{cro}=0.3$.
 
-Se hicieron dos instancias de sintonización. La primera fue una instancia de una hora que retorno \verb|-n 200,-g 200, --mut 0.2 --cro 0.3|, mientras que la segunda instancia se ejecuto con más posibles valores para las variables durante 8 horas, retornando \verb|-n 200 -g 250 --mut 0.2 --cro 0.3|. Esto se guardaron como dos archivos llamados \verb|param_tuned_g200| y \verb|param_tuned_g250|, respectivamente.
-El default fue una instancia inicial que se utilizo para pruebas iniciales que se mantuvo para hacer comparativas. Corresponde a \verb|-n 200 -g 200 --mut 0.3 --cro 0.3|.
-
-El objetivo de la experimentación sera evidenciar las diferencias que se generan cuando cambia el número de individuos como cuando se cambián los parámetros del evolutivo, según tiempo y evaluación.
-En la Tabla \ref{tab:carpetas_parametros} se detallan las distintas categorías de parámetros implementadas y sus objetivos especificos.
+El objetivo de la experimentación es evidenciar las diferencias producidas tanto al cambiar el número de individuos como al modificar los parámetros del evolutivo, según tiempo y evaluación. En la Tabla \ref{tab:carpetas_parametros} se detallan las distintas categorías evaluadas y sus objetivos específicos.
 
 \begin{table}[htbp]
 \centering
@@ -24,7 +18,7 @@ En la Tabla \ref{tab:carpetas_parametros} se detallan las distintas categorías 
 \setlength{\tabcolsep}{3.5pt}
 \caption{Clasificación y propósito de los conjuntos de parámetros evaluados.}
 \label{tab:carpetas_parametros}
-\begin{tabular}{>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{2.7cm} >{\raggedright\arraybackslash}p{4.6cm} >{\raggedright\arraybackslash}p{4.2cm}}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{4.4cm} >{\raggedright\arraybackslash}p{4.0cm}}
 \toprule
 \textbf{Carpeta / Caso} & \textbf{Parámetros fijos} & \textbf{Variaciones} & \textbf{Propósito / Utilidad} \\
 \midrule
@@ -38,10 +32,9 @@ En la Tabla \ref{tab:carpetas_parametros} se detallan las distintas categorías 
 \addlinespace[2pt]
 \texttt{04\_scale\_}\linebreak[0]\texttt{differences} & $p_{mut} = 0.2$, $p_{cro} = 0.3$. & Escalamiento $N \times G \in [3.000, 50.000]$ con pares $(n, g)$ entre $(30, 100)$ y $(250, 200)$. & Analiza la escalabilidad computacional y ganancia marginal frente al tiempo. \\
 \addlinespace[2pt]
-\texttt{05\_seeds} & $n = 200, g = 250$, $p_{mut} = 0.2, p_{cro} = 0.3$. & Semillas $s \in \{1, 2, 3, 4, 5\}$ comparando inicio GRASP vs. Random-Start. & Cuantifica la estabilidad y robustez del algoritmo frente al azar e inicialización. \\
+\texttt{05\_seeds} & $n = 200, g = 250$, $p_{mut} = 0.2, p_{cro} = 0.3$. & Semillas $s \in \{1, 2, 3, 4, 5\}$ comparando inicio \textit{GRASP} vs. \textit{Random-Start}. & Cuantifica la estabilidad y robustez del algoritmo frente al azar e inicialización. \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Adicionalmente, cada una de estas pruebas se ejecuto de dos formas distintas: Con una población general iniciada aleatoriamente mediante shuffle y otra mediante el GRASP mencionado anteriormente en la sección de Representación. Esto nos sirve para comparar la calidad de las soluciones dado una solución inicial distinta. Los datos se guardaron según si tuvieron GRASP como población inicial o no, y adicionalmente un archivo que junta ambos resultados. Dado que por cada instancia se ejecutaron $24$ parámetros distintos, dos veces según solución inicial, da un total de $960$ ejecuciones realizadas.
-
+Adicionalmente, cada prueba se ejecutó de dos formas distintas: con población inicial aleatoria (\textit{Random-Start}) y mediante el procedimiento \textit{GRASP}. Esto permite comparar la calidad de las soluciones según el punto de partida. Dado que por cada instancia se ejecutaron $24$ parámetros bajo dos tipos de inicio, se obtiene un total de $960$ ejecuciones realizadas.

@@ -1,19 +1,30 @@
-%Indique ac\'a, las herramientas de LLMs/IA usadas en su proyecto. \\En caso de no utilizar ninguna explicitar:
-%\textbf{Declaro no haber utilizado ninguna herramienta de LLMs/IA en el desarrollo de este trabajo.}\\
+%Indique ac\'a, las herramientas de LLMs/IA usadas en su proyecto. \\En caso de no utilizar ninguna explicitar: \textbf{Declaro no haber utilizado ninguna herramienta de LLMs/IA en el desarrollo de este trabajo.}\\ \noindent En caso de s\'i utilizarlo, para cada herramienta/uso, indicar:
+\begin{enumerate} 
+\item \textbf{Herramienta utilizada:} \textit{Gemini Pro} y \textit{NotebookLM} en sus versiones gratuitas para estudiantes.
+\item \textbf{Propósito de uso:} 
 
-%\noindent En caso de s\'i utilizarlo, para cada herramienta/uso, indicar:
-\begin{enumerate}
-\item Herramienta utilizada: Gemini Pro y NotebookLM en sus versiones gratuitas para estudiante
-\item Propósito de uso: Generar las bibliografias de .bib. Revisión de redacción. Generar listados de comparación entre modelos según paper. Escritura en latex de formulas.
-\item Prompts relevantes: 
 \begin{itemize}
-\item Generame el .bib de la referencia [X]
-\item Comparame el modelo de la fuente [X] con el de la fuente [Y].
-\item Dado el siguiente archivo .tex, indicame los errores ortograficos y de redacción, considerando que se debe de escribir en tercera persona.
-\item Retorname en una ecuación de latex la ecuación [i] del paper [X]
+\item Generar las bibliografías del archivo \texttt{.bib}.
+\item Revisión de redacción y ortografía. 
+\item Generar listados de comparación entre modelos según la literatura. 
+\item Escritura en \LaTeX{} de fórmulas matemáticas.
+\item Implementación de scripts para la generación de gráficas.
 \end{itemize}
-\item Nivel de edición: Reescritura y revisión directa en el paper en el caso de comparaciones de modelos. Copia y pega de los .bib y formulas de latex generadas. Dependiendo del caso, las revisiones de redacción fueron seleccionadas manualmente.
-\item Validación: Lectura de la referencia directa (NotebookLM entrega la sección especifica de donde saca la información).
+
+\item \textbf{Prompts relevantes:} 
+
+\begin{itemize}
+\item ``Genera el formato BibTeX de la referencia [X]''.
+\item ``Compara el modelo de la fuente [X] con el de la fuente [Y]''.
+\item ``Dado el siguiente archivo en \LaTeX{}, indica errores ortográficos y de redacción en tercera persona''.
+\item ``Escribe en formato \LaTeX{} la ecuación [i] del artículo [X]''.
+\item ``En \texttt{code/algorithms/plots.py}, implementa una función que genere gráficas de [x] vs. [y] con formato monocromático''.
+\end{itemize}
+
+\item \textbf{Nivel de edición:} Reescritura y revisión directa en el documento para la comparación de modelos. Incorporación manual de entradas \texttt{.bib} y fórmulas en \LaTeX{}. Las sugerencias de redacción se evaluaron y seleccionaron manualmente.
+
+\item \textbf{Validación:} Lectura y contraste directo con las fuentes originales (\textit{NotebookLM} indica la sección específica de consulta). Revisión manual y ejecución del código en \textit{Python} para los gráficos generados.
+
 \end{enumerate}
 
 

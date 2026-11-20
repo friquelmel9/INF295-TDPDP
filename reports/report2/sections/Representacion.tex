@@ -1,27 +1,24 @@
+Se retoma el modelo matemático entregado en la sección anterior. La representación que se utiliza para el algoritmo nace directamente del modelo, pero haciendo énfasis en el enfoque realizado en \textit{Boysen et al.} \cite{boysen2018drone}. 
 
-Recordamos el modelo matemático entregado en la sección anterior. La representación que utilizaremos para el algoritmo nace directamente del modelo, pero haciendo enfasis en el enfoque realizado en \cite{boysen2018drone}. 
-
-La representación de una solución viene en dos representaciones, el orden de entregas a los clientes y la informacón de que clientes fueron arreglados con dron.
+La representación de una solución se descompone en dos elementos: el orden de entregas a los clientes y la información de qué clientes fueron atendidos con dron:
 
 \begin{itemize}
-\item $x_i$: Indica el orden de entrega para el cliente $i$, independiente si fue entregado por camión o dron. Se asume que el nodo inicial y final son el depot ($0$), pero no se guardan dentro del arreglo para guardar información.
-\item $s_i$: Booleano que indica si el cliente fue entregado por camión o dron.
-\item $D$: Para cada cliente entregado por camión, se agrega su secuencia de vuelo al conjunto $D$ en la forma $i$, $j$, $k$. Es más auxiliar para representar bien la solución.
+\item $x_i$: Indica el orden de entrega para el cliente $i$, independiente de si fue atendido por camión o dron. Se asume que el nodo inicial y final corresponden al depósito ($0$), pero no se guardan dentro del arreglo para ahorrar memoria.
+\item $s_i$: Booleano que indica si el cliente fue atendido por camión o dron.
+\item $D$: Para cada cliente atendido por dron, se agrega su secuencia de vuelo al conjunto $D$ en la forma $\langle i, j, k \rangle$. Cumple un rol auxiliar para representar adecuadamente la solución.
 \end{itemize}
 
-
-Esta represetación cumple el proposito de bajar el espacio de busqueda. El espacio de busqueda ahora se restringe unicamente a aquel del TSP (es decir, habra $C$ variables con $C$ posibles valores), lo que nos permite trabajar con un espacio mucho menor que si se hubiera agregado las posibilidades del dron. 
-Como se menciono en el estado del arte, \cite{prins2004simple} argumenta que esta representación no elimina optimos y, de hecho, filtra soluciones menos eficaces. Esto se puede argumentar de la siguiente manera:
+Esta representación cumple el propósito de reducir el espacio de búsqueda. El espacio de búsqueda ahora se restringe únicamente a aquel del TSP (es decir, habrá $C$ variables con $C$ posibles valores), lo que permite trabajar con un espacio mucho menor que si se hubieran agregado las posibilidades del dron de forma directa. 
+Como se mencionó en el estado del arte, \textit{Prins} \cite{prins2004simple} argumenta que esta representación no elimina óptimos y, de hecho, filtra soluciones menos eficaces. Esto se fundamenta de la siguiente manera:
 
 \begin{enumerate}
-\item Sabemos que un problema TDPDP es una secuencia de drones y camión. 
-\item Dado que cada dron se envia en un nodo $i$ y se junta con el camión en un nodo $k$, entonces el nodo de entrega $j$ debe de encontrarse en medio de $i$ y $k$.
-\item Por lo tanto, la secuencia de entregas de clientes siempre va a seguir un orden en donde cada entrega de dron esta entre medio de dos entregas de camión. Esta entrega también de dron también seria posible por el camión (camión no tiene limitaciones en cuanto a la entrega), pero es optimizada por el dorn
-\item Por tanto, podemos concluir que, si tuvieramos la secuencia original TSP, dado un algoritmo que optimize las entregas de dron se podra obtener la secuencia optimizada del problema TDPDP.
+\item Un problema TDPDP consiste en una secuencia coordinada de entregas de dron y camión. 
+\item Dado que cada dron se envía en un nodo $i$ y se junta con el camión en un nodo $k$, el nodo de entrega $j$ debe encontrarse entre $i$ y $k$.
+\item Por lo tanto, la secuencia de entregas siempre sigue un orden donde cada entrega de dron está entre dos entregas de camión. Dicha entrega de dron también sería posible mediante el camión (el camión no tiene limitaciones de autonomía), pero es optimizada por el dron.
+\item Por tanto, se concluye que, si se dispone de la secuencia original del TSP, un algoritmo que optimice las entregas de dron permite obtener la secuencia optimizada del problema TDPDP.
 \end{enumerate}
 
-El algoritmo que optimiza la ruta TSP es conocido como SPLIT. Dada la ruta de entregas de un camión, entonces se optimizara para incluir los drones de tal forma que minimice el tiempo final de la ruta (al llegar al depot).
-
+El algoritmo que optimiza la ruta TSP es conocido como \textit{SPLIT}. Dada la ruta de entregas de un camión, este procedimiento la optimiza para incluir los drones de tal forma que minimice el tiempo final de la ruta (al llegar al depósito).
 
 \begin{figure}[H]
 \centering
@@ -70,8 +67,6 @@ El algoritmo que optimiza la ruta TSP es conocido como SPLIT. Dada la ruta de en
     \draw[edge_drone] (r2) -- (r3);
 
 \end{tikzpicture}
-	\caption{Representación del procedimiento SPLIT: partición de una ruta TSP (izquierda) para coordinar entregas terrestres (línea continua) y asignación de drones TDPDP (derecha) con entregas aéreas con dron (línea punteada).}
+	\caption{Representación del procedimiento \textit{SPLIT}: partición de una ruta TSP (izquierda) para coordinar entregas terrestres (línea continua) y asignación de drones TDPDP (derecha) con entregas aéreas con dron (línea punteada).}
 \label{fig:split_representacion}
 \end{figure}
-
-
