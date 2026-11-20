@@ -1,0 +1,40 @@
+% 
+
+La implementación principal del algoritmo se desarrolló en el lenguaje \textit{C++}. El ejecutable cuenta con diversos parámetros de configuración: \texttt{-n INT} para el número de individuos por generación, \texttt{-g INT} para el número de generaciones (iteraciones), \texttt{--mut FLOAT} y \texttt{--cro FLOAT} para indicar las probabilidades de mutación y cruzamiento, respectivamente, y el parámetro \texttt{-i TEXT} para indicar el archivo de la instancia a leer.
+
+Los experimentos se ejecutaron en los laboratorios del Departamento de Informática de la UTFSM (LABCOM), conectados mediante \texttt{SSH}. Estos computadores cuentan con sistema operativo \textit{Linux Fedora 40}, procesador \textit{Intel Core i5-10500} @ 3.10 GHz (6C, 12T) y 16 GB de memoria RAM DDR4.
+
+Las instancias poseen los datos de clientes $c$, un conjunto $C'$ de clientes atendibles por dron, matrices $\tau_{ij}$ y $\tau'_{ij}$ de tiempos de viaje para camión y dron, los valores $S_L$, $S_R$ y $E$ de características del dron, y los vuelos en el conjunto $F$. Cabe señalar que el hecho de que un vuelo pertenezca a $F$ no garantiza por sí solo su factibilidad energética respecto a la batería $E$.
+
+Para la evaluación del trabajo realizado se generaron distintos conjuntos de parámetros. Los parámetros base son dos: uno por defecto y otro sintonizado mediante \textit{ParamILS}. \textit{ParamILS} (\textit{Parameter Iterated Local Search}) se define en \textit{Hutter et al.} \cite{hutter2009paramils} como un marco de trabajo automatizado para la calibración de algoritmos. En \textit{Montero et al.} \cite{montero2018tuners} se indica que \textit{ParamILS} automatiza el ajuste mediante Búsqueda Local Iterada (ILS), concluyendo que, cuando el objetivo es maximizar resultados de la metaheurística, constituye uno de los métodos más recomendados.
+
+Se realizaron dos instancias de sintonización: una de una hora que retornó $n=200$, $g=200$, $p_{mut}=0.2$, $p_{cro}=0.3$, y otra con mayor exploración durante 8 horas que retornó $n=200$, $g=250$, $p_{mut}=0.2$, $p_{cro}=0.3$. Estas configuraciones se guardaron en los archivos \texttt{param\_tuned\_g200} y \texttt{param\_tuned\_g250}, respectivamente. La configuración por defecto empleada como referencia inicial correspondió a $n=200$, $g=200$, $p_{mut}=0.3$, $p_{cro}=0.3$.
+
+El objetivo de la experimentación es evidenciar las diferencias producidas tanto al cambiar el número de individuos como al modificar los parámetros del evolutivo, según tiempo y evaluación. En la Tabla \ref{tab:carpetas_parametros} se detallan las distintas categorías evaluadas y sus objetivos específicos.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\caption{Clasificación y propósito de los conjuntos de parámetros evaluados.}
+\label{tab:carpetas_parametros}
+\begin{tabular}{>{\raggedright\arraybackslash}p{2.4cm} >{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{4.4cm} >{\raggedright\arraybackslash}p{4.0cm}}
+\toprule
+\textbf{Carpeta / Caso} & \textbf{Parámetros fijos} & \textbf{Variaciones} & \textbf{Propósito / Utilidad} \\
+\midrule
+\texttt{00\_reference} & $n = 200$, $s = -1$ (default). & Configuración default ($g=200, p_{mut}=0.3, p_{cro}=0.3$) vs. sintonizadas ($g \in \{200, 250\}, p_{mut}=0.2, p_{cro}=0.3$). & Establece las líneas base de comparación para el resto de experimentos. \\
+\addlinespace[2pt]
+\texttt{01\_zero\_types} & $n = 200$, $g = 200$. & Sin cruce ($p_{cro}=0, p_{mut}=0.3$), sin mutación ($p_{mut}=0, p_{cro}=0.6$) y caminata aleatoria ($p_{mut}=0.9, p_{cro}=0$). & Aísla y cuantifica el impacto individual de cada operador genético. \\
+\addlinespace[2pt]
+\texttt{02\_operator\_}\linebreak[0]\texttt{balance} & $n = 200$, $g = 200$. & Ratios variables $(p_{mut}, p_{cro}) \in \{(0.1, 0.7),$ $(0.2, 0.6),$ $(0.3, 0.3),$ $(0.6, 0.1)\}$. & Evalúa el compromiso entre exploración (mutación) y explotación (cruce). \\
+\addlinespace[2pt]
+\texttt{03\_n\_g\_}\linebreak[0]\texttt{differences} & $N \times G = 20.000$, $p_{mut}=0.2, p_{cro}=0.3$. & Distribución de esfuerzo: $(n, g) \in \{(50, 400), (100, 200), (200, 100)\}$. & Contrasta amplitud (población grande) frente a profundidad (más generaciones). \\
+\addlinespace[2pt]
+\texttt{04\_scale\_}\linebreak[0]\texttt{differences} & $p_{mut} = 0.2$, $p_{cro} = 0.3$. & Escalamiento $N \times G \in [3.000, 50.000]$ con pares $(n, g)$ entre $(30, 100)$ y $(250, 200)$. & Analiza la escalabilidad computacional y ganancia marginal frente al tiempo. \\
+\addlinespace[2pt]
+\texttt{05\_seeds} & $n = 200, g = 250$, $p_{mut} = 0.2, p_{cro} = 0.3$. & Semillas $s \in \{1, 2, 3, 4, 5\}$ comparando inicio \textit{GRASP} vs. \textit{Random-Start}. & Cuantifica la estabilidad y robustez del algoritmo frente al azar e inicialización. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Adicionalmente, cada prueba se ejecutó de dos formas distintas: con población inicial aleatoria (\textit{Random-Start}) y mediante el procedimiento \textit{GRASP}. Esto permite comparar la calidad de las soluciones según el punto de partida. Dado que por cada instancia se ejecutaron $24$ parámetros bajo dos tipos de inicio, se obtiene un total de $960$ ejecuciones realizadas.

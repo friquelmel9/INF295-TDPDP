@@ -1,0 +1,33 @@
+% Conclusiones RELEVANTES del estudio realizado. Deber\'ia responder a las preguntas: ?`todas las t\'ecnicas resuelven el mismo problema o hay algunas diferencias?, ?`En qu\'e se parecen o difieren las t\'ecnicas en el contexto del problema?, ?`qu\'e limitaciones tienen?, ?`qu\'e t\'ecnicas o estrategias son las m\'as prometedoras?, ?`existe trabajo futuro por realizar?, ?`qu\'e ideas usted propone como lineamientos para continuar con investigaciones futuras?
+
+%Se pudo observar que para el problema de TDPDP se han realizado tanto enfoques de técnicas completas como de heurísticas y metaheurísticas. En un $53\%$ de los casos se utilizaron técnicas heurísticas y metaheurísticas para resolver los problemas, partiendo de soluciones iniciales obtenidas con métodos completos. Esto se debe a la naturaleza NP-Hard del problema, la cual fue evidenciada dentro del desarrollo del informe.
+
+%Con base en las soluciones, se evidenció la diferencia en el enfoque de cómo resolver el problema. Dado que el problema es un VRP modificado, se observó que una de las técnicas más utilizadas fue la de resolver primeramente un viaje para el camión y luego ir revisando en qué secciones se podría cambiar la entrega por la de un dron. También resultó útil diferenciar los problemas según la cantidad de drones y camiones, para así enfocarse en solucionar una parte del problema que sea menos compleja que el total.
+
+%La mayoría de las limitaciones se pueden resumir en la complejidad del problema. Dado que es NP-Hard, se tarda mucho tiempo en obtener una solución del problema que no se vea afectada por largos tiempos de computación. Esto es debido al tamaño del espacio de búsqueda y a las restricciones de sincronizar un dron con un camión. Un factor que se observó fue cómo las restricciones van aumentando mientras el problema se vuelve más cercano a la realidad. En los primeros modelos, las restricciones eran muy ideales y no consideraban tanto la realidad del problema. Trabajos posteriores arreglan esto, agregando gasto de batería variable según el peso del dron, o permitiendo que el dron se una a mitad de camino con un camión, entre otros.
+
+%Las tendencias muestran que el trabajo se encuentra focalizado en hacer uso de técnicas mixtas, que combinan el modelo matemático puro con las heurísticas para la resolución de los nodos utilizados para el dron. El trabajo futuro que queda por realizar sería hacer un análisis más profundo de las diferencias entre los modelos (según cantidad de drones, camiones, batería) y cómo estos modelos se relacionan con la realidad de la logística, para que así este trabajo pueda desarrollar un mayor valor en las empresas de entrega.
+
+El trabajo realizado sobre el problema del \textit{Truck Drone Parcel Delivery Problem} (TDPDP) permitió evidenciar la complejidad de encontrar soluciones de calidad dada su naturaleza \textit{NP-hard}.
+Se presentaron diversas variantes de la literatura en la Tabla \ref{tab:variantes-tdpdp}, donde varían aspectos como el rol del dron, la utilización de múltiples vehículos o la posibilidad de que el dron se reencuentre en marcha con el camión.
+
+Para la resolución del TDPDP, se han propuesto tanto técnicas exactas como heurísticas y metaheurísticas, observándose que en torno al $53\%$ de los estudios se recurre a métodos aproximados.
+A través de la revisión del estado del arte, se identificaron propuestas basadas en \textit{Simulated Annealing}, \textit{Tabu Search} y algoritmos evolutivos.
+Entre ellas, la estrategia con mayor presencia corresponde a \textit{Truck-First, Drone-Second}, donde el problema se formula inicialmente como un TSP y luego se aplica el procedimiento \textit{SPLIT} para derivar la solución coordinada del TDPDP.
+
+Ante este panorama, se desarrolló un algoritmo evolutivo híbrido bajo el enfoque \textit{Truck-First, Drone-Second}.
+El algoritmo evolutivo opera sobre la secuencia TSP, la cual se transforma en una solución del TDPDP mediante la asignación \textit{SPLIT} resuelta por programación dinámica.
+Asimismo, el método se complementa con la generación de soluciones iniciales de calidad mediante \textit{GRASP}, seleccionando entre los $k=5$ mejores vecinos.
+Tanto la mutación como el cruzamiento exploran la secuencia del TSP sin infringir las restricciones del TDPDP, las cuales son garantizadas por la programación dinámica.
+Específicamente, en la mutación se incorpora una estrategia adaptativa que ajusta el operador según la aptitud relativa del individuo respecto a la mejor solución actual.
+
+La fase experimental permitió analizar el impacto de los parámetros algorítmicos.
+Se evaluaron configuraciones sintonizadas con \textit{ParamILS}, así como casos de control y escenarios límite para evaluar el tiempo de cómputo y la calidad de las soluciones.
+
+En las instancias reducidas ($c \in \{10, 50\}$) se alcanzaron soluciones óptimas o cercanas a ellas, mientras que en $c \in \{100, 200\}$ se obtuvieron soluciones con margen de mejora.
+Se constató el valor de emplear \textit{GRASP} en la inicialización, logrando diferencias de hasta 40.000 unidades en la función objetivo frente al inicio aleatorio, sin penalizar el tiempo de ejecución.
+
+Asimismo, se observó que configuraciones extremas con escasa mutación o cruzamiento degradan los resultados respecto a opciones equilibradas, estableciéndose una configuración favorable en $p_{mut} = 0.2$ y $p_{cro} = 0.3$.
+Por otra parte, ante un valor de $n \times g$ idéntico, los tiempos de ejecución resultan similares, pero se obtienen mejores resultados cuando $n$ es menor que $g$.
+
+Como trabajo futuro, se propone evaluar configuraciones intermedias del espacio de parámetros, así como comparar este enfoque con algoritmos evolutivos que integren directamente las decisiones del dron en los operadores genéticos, analizando su desempeño frente a la miopía inherente a la estrategia desacoplada \textit{Truck-First, Drone-Second}.

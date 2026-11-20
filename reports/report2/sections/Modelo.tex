@@ -1,0 +1,136 @@
+\setlength{\abovedisplayskip}{2pt}
+\setlength{\belowdisplayskip}{2pt}
+\setlength{\abovedisplayshortskip}{1pt}
+\setlength{\belowdisplayshortskip}{1pt}
+
+En este trabajo se formula el modelo matemático del TDPDP con base directa en el trabajo seminal de \textit{Murray} y \textit{Chu} \cite{Murray2015Flying}, marco canónico para el ruteo colaborativo camión-dron.
+
+\subsection{Parámetros}
+
+\begin{itemize}[noitemsep, topsep=1pt, parsep=0pt, leftmargin=*]
+\item $C = \{1,\dots,c\}$: Conjunto de clientes; $C' \subseteq C$: Clientes atendibles por dron.
+\item $N = \{0, 1, \dots, c+1\}$: Paradas totales ($0$: depósito inicial, $c+1$: depósito final); $N_0 = N \setminus \{c+1\}$, $N_+ = N \setminus \{0\}$.
+\item $\tau_{ij}, \tau'_{ij}$: Tiempo de viaje de camión y dron entre $i$ y $j$; $S_L, S_R$: Tiempos de lanzamiento y recuperación; $e$: Autonomía de batería del dron.
+\item $P = \{\langle i,j,k \rangle \mid i \in N_0, \; j \in C' \setminus \{i\}, \; k \in N_+ \setminus \{i,j\}, \; \tau'_{ij} + \tau'_{jk} \le e\}$: Salidas aéreas factibles.
+\end{itemize}
+
+\subsection{Variables de Decisión}
+
+\begin{itemize}[noitemsep, topsep=1pt, parsep=0pt, leftmargin=*]
+\item $x_{ij} \in \{0,1\}$: $1$ si el camión va directamente de $i \in N_0$ a $j \in N_+$; $y_{ijk} \in \{0,1\}$: $1$ si el dron ejecuta el vuelo $\langle i,j,k \rangle \in P$.
+\item $t_j, t'_j \ge 0$: Instante de llegada de camión y dron al nodo $j$; $u_i \in [1, c+2]$: Posición ordinal MTZ de $i \in N_+$.
+\item $p_{ij} \in \{0,1\}$: $1$ si el cliente $i$ es visitado por el camión antes que el cliente $j$.
+\end{itemize}
+
+\subsection{Función Objetivo}
+
+Minimizar el tiempo de retorno del vehículo más tardío al depósito final ($c+1$):
+\begin{equation}
+\min \quad t_{c+1} \tag{1}
+\end{equation}
+
+\subsection{Restricciones del Modelo}
+
+\begin{enumerate}[label=\textbf{\arabic*.}, leftmargin=*, itemsep=1.0pt, topsep=1.5pt, parsep=0pt]
+
+\item \textbf{Visita única por cliente:} Todo cliente debe ser atendido exactamente una vez por el camión o el dron:
+\begin{equation}
+\sum_{i \in N_0,\, i \neq j} x_{ij} + \sum_{i \in N_0,\, i \neq j} \sum_{\substack{k \in N_+ \\ \langle i,j,k \rangle \in P}} y_{ijk} = 1 \quad \forall j \in C 
+\tag{2}
+\end{equation}
+
+\item \textbf{Salida y retorno único al depósito:}
+\begin{equation}
+\sum_{j \in N_+} x_{0j} = 1, \qquad \sum_{i \in N_0} x_{i, c+1} = 1 
+\tag{3--4}
+\end{equation}
+
+\item \textbf{Eliminación de subtours para el camión (\textit{Miller-Tucker-Zemlin}):}
+\begin{equation}
+u_i - u_j + 1 \le (c+2)(1 - x_{ij}) \quad \forall i \in C, \; j \in N_+ \setminus \{i\} 
+\tag{5}
+\end{equation}
+
+\item \textbf{Conservación de flujo en cada parada de cliente:}
+\begin{equation}
+\sum_{i \in N_0,\, i \neq j} x_{ij} = \sum_{k \in N_+,\, k \neq j} x_{jk} \quad \forall j \in C 
+\tag{6}
+\end{equation}
+
+\item \textbf{Capacidad de despegue y aterrizaje:} A lo más una operación aérea por parada:
+\begin{equation}
+\sum_{j \in C,\, j \neq i} \sum_{\substack{k \in N_+ \\ \langle i,j,k \rangle \in P}} y_{ijk} \le 1 \quad \forall i \in N_0, \qquad \sum_{i \in N_0,\, i \neq k} \sum_{\substack{j \in C \\ \langle i,j,k \rangle \in P}} y_{ijk} \le 1 \quad \forall k \in N_+ 
+\tag{7--8}
+\end{equation}
+
+\item \textbf{Visita obligatoria del camión en paradas aéreas (despegue intermedio y depósito inicial):}
+\begin{equation}
+2 y_{ijk} \le \sum_{h \in N_0,\, h \neq i} x_{hi} + \sum_{l \in C,\, l \neq k} x_{lk} \; (\forall i \in C), \qquad y_{0jk} \le \sum_{h \in N_0,\, h \neq k} x_{hk} \; (i=0) 
+\tag{9--10}
+\end{equation}
+
+\item \textbf{Precedencia del nodo de despegue respecto al de recuperación:}
+\begin{equation}
+u_k - u_i \ge 1 - (c+2)\Bigl(1 - \sum_{\substack{j \in C \\ \langle i,j,k \rangle \in P}} y_{ijk}\Bigr) \quad \forall i \in C, \; k \in N_+ \setminus \{i\} 
+\tag{11}
+\end{equation}
+
+\item \textbf{Sincronización temporal en lanzamiento y recuperación ($t'_i = t_i, \; t'_k = t_k$):}
+\begin{equation}
+|t'_i - t_i| \le M\Bigl(1 - \sum_{j \neq i,\, k} y_{ijk}\Bigr) \; \forall i \in C, \qquad |t'_k - t_k| \le M\Bigl(1 - \sum_{i \neq k,\, j} y_{ijk}\Bigr) \; \forall k \in N_+ 
+\tag{12--15}
+\end{equation}
+
+\item \textbf{Tiempo de arribo del camión con traslados y tiempos de servicio ($S_L, S_R$):}
+\begin{equation}
+t_k \ge t_h + \tau_{hk} + S_L \sum_{\langle k,l,m \rangle \in P} y_{klm} + S_R \sum_{\langle i,j,k \rangle \in P} y_{ijk} - M(1 - x_{hk}) \quad \forall h \in N_0, \; k \in N_+ \setminus \{h\} 
+\tag{16}
+\end{equation}
+
+\item \textbf{Tiempos de vuelo del dron (hacia cliente $j$ y hacia reencuentro $k$):}
+\begin{equation}
+\begin{aligned}
+t'_j &\ge t'_i + \tau'_{ij} - M\Bigl(1 - \sum\nolimits_{k} y_{ijk}\Bigr) \quad \forall j \in C', \; i \in N_0 \setminus \{j\} \\
+t'_k &\ge t'_j + \tau'_{jk} + S_R - M\Bigl(1 - \sum\nolimits_{i} y_{ijk}\Bigr) \quad \forall j \in C', \; k \in N_+ \setminus \{j\}
+\end{aligned}
+\tag{17--18}
+\end{equation}
+
+\item \textbf{Límite de autonomía de batería del dron ($e$):}
+\begin{equation}
+t'_k - (t'_j - \tau'_{ij}) \le e + M(1 - y_{ijk}) \quad \forall k \in N_+, \; j \in C \setminus \{k\}, \; i \in \{N_0 : \langle i,j,k \rangle \in P\} 
+\tag{19}
+\end{equation}
+
+\item \textbf{Consistencia de precedencias relativas $p_{ij}$:}
+\begin{equation}
+1 - (c+2) p_{ij} \le u_i - u_j \le -1 + (c+2)(1 - p_{ij}), \quad p_{ij} + p_{ji} = 1 \quad \forall i, j \in C, \; i \neq j 
+\tag{20--22}
+\end{equation}
+
+\item \textbf{Impedimento de salidas concurrentes o solapadas del dron:}
+\begin{equation}
+t'_l \ge t'_k - M \Bigl(3 - \sum_{\langle i,j,k \rangle \in P} y_{ijk} - \sum_{\langle l,m,n \rangle \in P} y_{lmn} - p_{il}\Bigr) \quad \forall i \in N_0, \; k \in N_+ \setminus \{i\}, \; l \in C \setminus \{i, k\} 
+\tag{23}
+\end{equation}
+
+\item \textbf{Condiciones de borde y dominios de variables:}
+\begin{equation}
+t_0 = 0, \quad t'_0 = 0, \quad p_{0j} = 1 \; \forall j \in C; \qquad x_{ij}, p_{ij}, y_{ijk} \in \{0, 1\}, \quad 1 \le u_i \le c+2, \quad t_i, t'_i \ge 0 
+\tag{24--32}
+\end{equation}
+
+\end{enumerate}
+
+\subsection{Variaciones del Modelo en la Literatura}
+
+\begin{itemize}
+\item En \textit{Ponza} \cite{ponza2016optimization}, las variables de tiempo $t_i$ y $t'_i$ son definidas como el tiempo de llegada al nodo $i$, tanto para el camión como para el dron. En el artículo se denomina a las variables $t_i^T$ y $t_i^D$ como el instante en el que el dron está listo para salir. Esto sirve para calcular de mejor manera la restricción de que el dron se encuentre esperando a la llegada del camión. También mencionan que el modelo original no contabiliza el tiempo de lanzamiento ($S_L$) dentro del gasto de batería.
+\item En \textit{Freitas} y \textit{Penna} \cite{freitas2021exact} se eliminan las variables auxiliares $u_i$, realizando un indexamiento de los tiempos en que el camión hace las visitas, definido como $l \in L = \{0,\dots,n\}$. Esto hace que el problema sea más óptimo de resolver.
+\item En \textit{Boysen et al.} \cite{boysen2018drone}, el modelo trata más de resolver qué drones se pueden agregar a un camino de camión ya prefijado, es decir, el modelo apunta a agregar drones en la ruta ya resuelta de un VRP.
+\item En \textit{Thomas et al.} \cite{thomas2024collaborative}, se agregan parámetros para poder hacer que el dron vuelva al camión durante el trayecto entre nodos, en vez de tener que estar esperando en una ubicación específica. También aumentan la complejidad del dron, añadiendo consumos distintos de batería según la actividad que el dron esté realizando (viajando, cargando, volviendo).
+\end{itemize}
+
+% Inclusión especificación de variantes
+
+En este trabajo se hará uso del modelo original presentado en las subsecciones anteriores, con un enfoque en la variación de \textit{Boysen et al.} \cite{boysen2018drone}, es decir, resolver un recorrido terrestre base y agregar drones. Esto responde a que se trabajará sobre un modelo evolutivo híbrido que se detalla en la siguiente sección.
