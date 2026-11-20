@@ -155,7 +155,9 @@ Para los plots se tiene los siguientes `.py` que usan los datos guardados en `da
 Los plots quedaran guardados en `data/plots`.
 
 > [!warning] Exageramiento de plots
-> Se tiene un monton más de graficas que las utilizadas en el informe. Esto no es un error, si no que se utilizo para poder analizar de mejor manera.
+>
+>Se tiene un monton más de graficas que las utilizadas en el informe. Esto no es un error, si no que se utilizo para poder analizar de mejor manera.
+>
 > Dado que se mejoro un plot_generator tomado de un curso anterior (Algoco) para esta tarea, hay varios graficos que se generaron y no se usaron. Además, esta parte de las imagenes fue automatizada por IA, el generador fue mejorado mediante esta.
 
 ### Data
