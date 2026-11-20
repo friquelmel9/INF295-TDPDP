@@ -31,6 +31,7 @@ Donde `<parametros>` corresponden a los parámetros a utilizar. Para saber la li
 ```
 
 El comando retorna la siguiente lista de opciones:
+```
   -h,     --help              Print this help message and exit
   -n,     --n INT             Tamaño de la Población (n)
   -g,     --g INT             Cantidad de generaciones/iteraciones del evolutivo (g)
@@ -41,6 +42,7 @@ El comando retorna la siguiente lista de opciones:
   -p,     --print             Imprime el estado actual del algoritmo
   -r,     --result            Imprime el resultado del algoritmo (para tunear usando ParamILS)
           --grasp             Indica si generatePopulation utiliza GRASP o shuffle aleatorio (random-start)
+```
 
 Para ejecutar una instancia se debe de indicar como mínimo algún archivo mediante `-i <file-path>`. Las instancias se encuentran dentro de la carpeta `data/instancias`.
 
