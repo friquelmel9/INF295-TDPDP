@@ -1,8 +1,10 @@
-texfile = PlantillaEntrega2
+texfile = RiquelmeF202373046
 bibfile = Referencias.bib
 
 documento: $(texfile).tex $(bibfile)
+	pdflatex $(texfile).tex
 	bibtex $(texfile).aux
+	pdflatex $(texfile).tex
 	pdflatex $(texfile).tex
 
 clean:
