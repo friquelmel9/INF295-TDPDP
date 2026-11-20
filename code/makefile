@@ -15,5 +15,17 @@ run-all: compile
 run-exp: compile
 	bash ./scripts/run_exp.sh
 
+plots: # Genera los plots
+	python3 algorithms/plots.py
+
+clean-plots: # Borra los plots
+	rm -rf data/plots && mkdir -p data/plots
+
+clean-results: # Elimina los resultados
+	rm -rf data/results && mkdir -p data/results
+
 clean:
 	rm -rf exec
+
+.PHONY: all compile test-wrapper tune run-all run-exp plots clean-plots clean-results clean
+
